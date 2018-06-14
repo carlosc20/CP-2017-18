@@ -107,7 +107,7 @@
 \begin{tabular}{ll}
 \textbf{Grupo} nr. & 99 (preencher)
 \\\hline
-a11111 & Nome1 (preencher)	
+a81946 & Carlos Castro
 \\
 a22222 & Nome2 (preencher)	
 \\
@@ -1018,19 +1018,26 @@ loop = undefined
 \subsection*{Problema 4}
 
 \begin{code}
-inFTree = undefined
-outFTree = undefined
-baseFTree = undefined
-recFTree = undefined
-cataFTree = undefined
-anaFTree = undefined
-hyloFTree = undefined
+--data FTree a b = Unit b | Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
+--type PTree = FTree Square Square
+--type Square = Float
+inFTree = either Unit Comp
+outFTree (Unit c)       = Left c
+outFTree (Comp a t1 t2) = Right (a t1 t2)
+baseFTree f g h  = f -|- g h h          -- f -|- (g  >< (h >< h))
+recFTree f = baseFTree id id f
+cataFTree a = a . (recFTree (cataFTree a)) . outFTree
+anaFTree f = inFTree . (recFTree (anaFTree f) ) . f
+hyloFTree a c = cataFTree a . anaFTree c
 
 instance Bifunctor FTree where
-    bimap = undefined
+    bimap f g = cataFTree ( inFTree . baseFTree g f id )
 
-generatePTree = undefined
-drawPTree = undefined
+--invFTree = cataFTree (inFTree . (id -|- id >< swap))
+--countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
+
+generatePTree = undefined --ana
+drawPTree = undefined     --cata e/ou ana
 \end{code}
 
 \subsection*{Problema 5}

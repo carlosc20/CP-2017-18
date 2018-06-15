@@ -1,5 +1,5 @@
 
--- (c) MP-I (1998/9-2006/7) and CP (2005/6-2018/9)
+-- (c) MP-I (1998/9-2006/7) and CP (2005/6-2017/8)
 
 module Cp where
 
@@ -14,7 +14,7 @@ split f g x = (f x, g x)
 (><) :: (a -> b) -> (c -> d) -> (a,c) -> (b,d)
 f >< g = split (f . p1) (g . p2)
 
--- the 0-adic split 
+-- the 0-adic split
 
 (!) :: a -> ()
 (!) = const ()
@@ -53,7 +53,7 @@ expn f = curry (f . ap)
 p2p :: (a, a) -> Bool -> a
 p2p p b = if b then (snd p) else (fst p) -- pair to predicate
 
--- exponentiation functor is (a->) predefined 
+-- exponentiation functor is (a->) predefined
 
 -- instance Functor ((->) s) where
 --	fmap f g = f . g

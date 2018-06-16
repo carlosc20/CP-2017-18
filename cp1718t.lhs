@@ -107,9 +107,9 @@
 \begin{tabular}{ll}
 \textbf{Grupo} nr. & 99 (preencher)
 \\\hline
-a81946 & Carlos Castro
+a11111 & Nome1 (preencher)
 \\
-a81302 & Daniel Costa
+a22222 & Nome2 (preencher)
 \\
 a33333 & Nome3 (preencher)
 \end{tabular}
@@ -988,11 +988,30 @@ anaBlockchain f = inBlockchain . (recBlockchain (anaBlockchain f) ) . f
 
 hyloBlockchain f g = cataBlockchain f . anaBlockchain g
 
---allTransactions (Bc b) = (p2 . p2) b
---allTransactions (Bcs b) = uncurry (++) (split (p2 . p2 . p1) (allTransactions . p2) b)
+--allTransactions (Bc (_, (_, t))) = t
+--allTransactions (Bcs ((_, (_, t)), b)) = t ++ allTransactions b
 allTransactions = cataBlockchain $ either (p2 . p2) (uncurry (++) . split (p2 . p2 . p1) p2)
 
-ledger = undefined
+ledger = groupTransactions . groupBy (\(e1, _) (e2, _) -> e1 == e2) . sort . splitTransactions . allTransactions
+    where
+        --splitTransactions [] = []
+        --splitTransactions ((e1, (v, e2)):t) = (e1, negate v) : (e2, v) : splitTransactions t
+        splitTransactions = cataList $ either nil (cons . (split (split e1 v) (cons . split (split e2 (negate . v)) (p2))))
+            where
+                e1 = p2 . p2 . p1
+                e2 = p1 . p1
+                v = p1 . p2 . p1
+        --groupTransactions [] = []
+        --groupTransactions (h:t) = (e, sum (snds h)):groupTransactions t
+        --    where
+        --        e = fst $ head h
+        --        snds [] = 0
+        --        snds ((a,b):t) = b
+        groupTransactions = (cataList $ either nil (cons . (split e (sum . snds) >< id)))
+            where
+                e = p1 . head
+                snds = cataList $ either nil (cons . (p2 >< id)) -- Retorna os segundos elementos de uma lista
+
 isValidMagicNr = undefined
 \end{code}
 
@@ -1028,41 +1047,22 @@ loop = undefined
 \subsection*{Problema 4}
 
 \begin{code}
---data FTree a b = Unit b | Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
---type PTree = FTree Square Square
---type Square = Float
-
---inFTree :: Either b (a, (FTree a b, FTree a b)) -> FTree a b
-inFTree = either Unit Comp
-
---outFTree :: FTree a1 a2 -> Either a2 (a1, (FTree a1 a2, FTree a1 a2))
-outFTree (Unit c)       = Left c
-outFTree (Comp a t1 t2) = Right (a t1 t2)
-
---baseFTree :: (a1 -> b1) -> (a2 -> b2) -> (a3 -> d) -> Either a2 (a1, (a3, a3)) -> Either b2 (b1, (d, d))
-baseFTree f g h  = f -|- g h h          -- f -|- (g  >< (h >< h))
-
---recFTree :: (a -> d) -> Either b1 (b2, (a, a)) -> Either b1 (b2, (d, d))
-recFTree f = baseFTree id id f
-
---cataFTree :: (Either b1 (b2, (d, d)) -> d) -> FTree b2 b1 -> d
-cataFTree a = a . (recFTree (cataFTree a)) . outFTree
-
---anaFTree :: (a1 -> Either b (a2, (a1, a1))) -> a1 -> FTree a2 b
-anaFTree f = inFTree . (recFTree (anaFTree f) ) . f
-
---hyloFTree :: (Either b1 (b2, (c, c)) -> c) -> (a -> Either b1 (b2, (a, a))) -> a -> c
-hyloFTree a c = cataFTree a . anaFTree c
+inFTree = either Unit (uncurry2 Comp)
+          where
+              uncurry2 f = \(x , (y, z)) -> f x y z
+--inFTree = either Unit Comp
+outFTree = undefined
+baseFTree = undefined
+recFTree = undefined
+cataFTree = undefined
+anaFTree = undefined
+hyloFTree = undefined
 
 instance Bifunctor FTree where
-    bimap f g = cataFTree ( inFTree . baseFTree g f id )
+    bimap = undefined
 
---invFTree = cataFTree (inFTree . (id -|- id >< swap))
---countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
-
-generatePTree = undefined --ana
-drawPTree = undefined     --cata e/ou ana
-animatePTree = undefined
+generatePTree = undefined
+drawPTree = undefined
 \end{code}
 
 \subsection*{Problema 5}

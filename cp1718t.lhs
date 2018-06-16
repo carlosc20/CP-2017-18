@@ -1054,22 +1054,41 @@ loop = undefined
 \subsection*{Problema 4}
 
 \begin{code}
+--data FTree a b = Unit b | Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
+--type PTree = FTree Square Square
+--type Square = Float
+
+--inFTree :: Either b (a, (FTree a b, FTree a b)) -> FTree a b
 inFTree = either Unit (uncurry2 Comp)
-          where
-              uncurry2 f = \(x , (y, z)) -> f x y z
---inFTree = either Unit Comp
-outFTree = undefined
-baseFTree = undefined
-recFTree = undefined
-cataFTree = undefined
-anaFTree = undefined
-hyloFTree = undefined
+            where uncurry2 f = \(x, (y, z)) -> f x y z
+
+--outFTree :: FTree a1 a2 -> Either a2 (a1, (FTree a1 a2, FTree a1 a2))
+outFTree (Unit c)       = Left c
+outFTree (Comp a t1 t2) = Right (a, (t1, t2))
+
+--baseFTree :: (a1 -> b1) -> (a2 -> b2) -> (a3 -> d) -> Either a2 (a1, (a3, a3)) -> Either b2 (b1, (d, d))
+baseFTree f g h  = g -|- (f  >< (h >< h))
+
+--recFTree :: (a -> d) -> Either b1 (b2, (a, a)) -> Either b1 (b2, (d, d))
+recFTree f = baseFTree id id f
+
+--cataFTree :: (Either b1 (b2, (d, d)) -> d) -> FTree b2 b1 -> d
+cataFTree a = a . (recFTree (cataFTree a)) . outFTree
+
+--anaFTree :: (a1 -> Either b (a2, (a1, a1))) -> a1 -> FTree a2 b
+anaFTree f = inFTree . (recFTree (anaFTree f) ) . f
+
+--hyloFTree :: (Either b1 (b2, (c, c)) -> c) -> (a -> Either b1 (b2, (a, a))) -> a -> c
+hyloFTree a c = cataFTree a . anaFTree c
 
 instance Bifunctor FTree where
-    bimap = undefined
+    bimap f g = cataFTree ( inFTree . baseFTree f g id )
 
-generatePTree = undefined
-drawPTree = undefined
+--invFTree = cataFTree (inFTree . (id -|- id >< swap))
+--countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
+
+generatePTree = undefined --ana
+drawPTree = undefined     --cata e/ou ana
 \end{code}
 
 \subsection*{Problema 5}

@@ -1012,7 +1012,14 @@ ledger = groupTransactions . groupBy (\(e1, _) (e2, _) -> e1 == e2) . sort . spl
                 e = p1 . head
                 snds = cataList $ either nil (cons . (p2 >< id)) -- Retorna os segundos elementos de uma lista
 
-isValidMagicNr = undefined
+isValidMagicNr = isSingle . group . sort . getMagicNos
+    where
+        --getMagicNos (Bc (n, _)) = [n]
+        --getMagicNos (Bcs ((n,_),b)) = n:getMagicNos b
+        getMagicNos = cataBlockchain $ either (cons . split p1 nil) (cons . (p1 >< id))
+        --isSingle [] = True
+        --isSingle (h:t) = (length h == 1) && isSingle t
+        isSingle = cataList $ either (const True) (uncurry (&&) . ((uncurry (==) . split (length) (const 1)) >< id))
 \end{code}
 
 

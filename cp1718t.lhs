@@ -1033,14 +1033,15 @@ loop = undefined
 --type Square = Float
 
 --inFTree :: Either b (a, (FTree a b, FTree a b)) -> FTree a b
-inFTree = either Unit Comp
+inFTree = either Unit (uncurry2 Comp)
+            where uncurry2 f = \(x, (y, z)) -> f x y z
 
 --outFTree :: FTree a1 a2 -> Either a2 (a1, (FTree a1 a2, FTree a1 a2))
 outFTree (Unit c)       = Left c
-outFTree (Comp a t1 t2) = Right (a t1 t2)
+outFTree (Comp a t1 t2) = Right (a, (t1, t2))
 
 --baseFTree :: (a1 -> b1) -> (a2 -> b2) -> (a3 -> d) -> Either a2 (a1, (a3, a3)) -> Either b2 (b1, (d, d))
-baseFTree f g h  = f -|- g h h          -- f -|- (g  >< (h >< h))
+baseFTree f g h  = g -|- (f  >< (h >< h))
 
 --recFTree :: (a -> d) -> Either b1 (b2, (a, a)) -> Either b1 (b2, (d, d))
 recFTree f = baseFTree id id f
@@ -1055,14 +1056,13 @@ anaFTree f = inFTree . (recFTree (anaFTree f) ) . f
 hyloFTree a c = cataFTree a . anaFTree c
 
 instance Bifunctor FTree where
-    bimap f g = cataFTree ( inFTree . baseFTree g f id )
+    bimap f g = cataFTree ( inFTree . baseFTree f g id )
 
 --invFTree = cataFTree (inFTree . (id -|- id >< swap))
 --countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
 
 generatePTree = undefined --ana
 drawPTree = undefined     --cata e/ou ana
-animatePTree = undefined
 \end{code}
 
 \subsection*{Problema 5}

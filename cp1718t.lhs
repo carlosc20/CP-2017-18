@@ -1027,16 +1027,31 @@ isValidMagicNr = isSingle . group . sort . getMagicNos
 \subsection*{Problema 2}
 
 \begin{code}
-inQTree = undefined
+--data QTree a = Cell a Int Int | Block (QTree a) (QTree a) (QTree a) (QTree a) deriving (Eq,Show)
+
+--inQTree :: Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a))) -> QTree a
+inQTree = undefined --either Cell Block
+
+--outQTree :: QTree a -> Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a)))
 outQTree = undefined
-baseQTree = undefined
-recQTree = undefined
+
+--baseQTree :: (a1 -> b) -> (a2 -> d1) -> Either (a1, d2) (a2, (a2, (a2, a2))) -> Either (b, d2) (d1, (d1, (d1, d1)))
+baseQTree = undefined  --baseQTree f g  = (f >< id) -|- (g >< (g >< (g >< g)))
+
+--recQTree :: (a -> d1) -> Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (d1, (d1, (d1, d1)))
+recQTree = undefined  -- recQTree f = baseQTree id f
+
+--cataQTree :: (Either (b, (Int, Int)) (d, (d, (d, d))) -> d) -> QTree b -> d
 cataQTree = undefined
+
+--anaQTree :: (a1 -> Either (a2, (Int, Int)) (a1, (a1, (a1, a1)))) -> a1 -> QTree a2
 anaQTree = undefined
+
+--hyloQTree :: (Either (b, (Int, Int)) (c, (c, (c, c))) -> c) -> (a -> Either (b, (Int, Int)) (a, (a, (a, a)))) -> a -> c
 hyloQTree = undefined
 
 instance Functor QTree where
-    fmap = undefined
+    fmap = undefined --cataQTree ( inQTree . baseQTree f id )
 
 rotateQTree = undefined
 scaleQTree = undefined

@@ -1030,34 +1030,76 @@ isValidMagicNr = isSingle . group . sort . getMagicNos
 --data QTree a = Cell a Int Int | Block (QTree a) (QTree a) (QTree a) (QTree a) deriving (Eq,Show)
 
 --inQTree :: Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a))) -> QTree a
-inQTree = undefined --either Cell Block
+inQTree = either (uncurry2 Cell) (uncurry3 Block)
+            where uncurry3 f = \(a, (b, (c, d))) -> f a b c d
+                  uncurry2 f = \(x, (y, z)) -> f x y z
 
 --outQTree :: QTree a -> Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a)))
-outQTree = undefined
+outQTree (Cell a x y)        = Left (a, (x, y))
+outQTree (Block t1 t2 t3 t4) = Right (t1,(t2, (t3, t4)))
 
 --baseQTree :: (a1 -> b) -> (a2 -> d1) -> Either (a1, d2) (a2, (a2, (a2, a2))) -> Either (b, d2) (d1, (d1, (d1, d1)))
-baseQTree = undefined  --baseQTree f g  = (f >< id) -|- (g >< (g >< (g >< g)))
+baseQTree f g  = (f >< id) -|- (g >< (g >< (g >< g)))
 
 --recQTree :: (a -> d1) -> Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (d1, (d1, (d1, d1)))
-recQTree = undefined  -- recQTree f = baseQTree id f
+recQTree f = baseQTree id f
 
 --cataQTree :: (Either (b, (Int, Int)) (d, (d, (d, d))) -> d) -> QTree b -> d
-cataQTree = undefined
+cataQTree a = a . (recQTree (cataQTree a)) . outQTree
 
 --anaQTree :: (a1 -> Either (a2, (Int, Int)) (a1, (a1, (a1, a1)))) -> a1 -> QTree a2
-anaQTree = undefined
+anaQTree f = inQTree . (recQTree (anaQTree f) ) . f
 
 --hyloQTree :: (Either (b, (Int, Int)) (c, (c, (c, c))) -> c) -> (a -> Either (b, (Int, Int)) (a, (a, (a, a)))) -> a -> c
-hyloQTree = undefined
+hyloQTree a c = cataQTree a . anaQTree c
 
 instance Functor QTree where
-    fmap = undefined --cataQTree ( inQTree . baseQTree f id )
+    fmap f = cataQTree ( inQTree . baseQTree f id )
 
-rotateQTree = undefined
-scaleQTree = undefined
-invertQTree = undefined
-compressQTree = undefined
-outlineQTree = undefined
+--1
+--rotateQTree :: QTree a -> QTree a
+rotateQTree = cataQTree (either f g) where
+    f (k,(x,y)) = Cell k y x
+    g (a,(b,(c,d))) = Block c a d b
+
+
+--scaleQTree :: Int -> QTree a -> QTree a
+scaleQTree n = cataQTree (either f g) where
+    f (k,(x,y)) = Cell k (x*n) (y*n)
+    g (a,(b,(c,d))) = Block a b c d
+
+
+--invertQTree :: QTree PixelRGBA8 -> QTree PixelRGBA8
+invertQTree = cataQTree (either f g) where
+    f ((PixelRGBA8 r g b a),(x,y)) = Cell (PixelRGBA8 (255 - r) (255 - g) (255 - b) a) x y
+    g (a,(b,(c,d))) = Block a b c d
+
+
+--2     NAO FUNCIONA usar o n
+--compressQTree :: Int -> QTree a -> QTree a
+compressQTree n = cataQTree (either f g) where
+    f (k,(x,y)) = Cell k x y
+    g (Cell a xa ya, (Cell b xb yb, (Cell c xc yc, Cell d xd yd))) = Cell a (xa + xb + xc + xd) (ya + yb + yc + yd)
+    g (a,(b,(c,d))) = Block a b c d
+
+--compressBMP 1 "cp1718t_media/person.bmp" "person1.bmp"
+--compressBMP 2 "cp1718t_media/person.bmp" "person2.bmp"
+--compressBMP 3 "cp1718t_media/person.bmp" "person3.bmp"
+--compressBMP 4 "cp1718t_media/person.bmp" "person4.bmp"
+
+
+--3      
+--outlineQTree :: (a -> Bool ) -> QTree a -> Matrix Bool
+outlineQTree h = cataQTree (either f g) where
+    f (k,(x,y)) = matrix y x (const (h k))
+    g (a,(b,(c,d))) = (a <|> b) <-> (c <|> d)
+
+-- <|> junta matrizes horizontalmente
+-- <-> junta matrizes verticalmente
+--outlineBMP "cp1718t_media/person.bmp" "personOut1.bmp"
+--addOutlineBMP "cp1718t_media/person.bmp" "personOut2.bmp"
+--nao funciona o teste2a
+
 \end{code}
 
 \subsection*{Problema 3}
@@ -1103,8 +1145,42 @@ instance Bifunctor FTree where
 --invFTree = cataFTree (inFTree . (id -|- id >< swap))
 --countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
 
-generatePTree = undefined --ana
-drawPTree = undefined     --cata e/ou ana
+--generatePTree :: Int -> PTree  
+generatePTree = anaFTree f where
+    f n = if (n == 0) then i1 1 else i2 (r, ((n-1), (n-1)))
+     where  r = (sqrt 2) ^ (fromIntegral n)
+
+
+--drawPTree :: PTree -> [Picture] cata e/ou ana
+drawPTree = cataFTree (either f g) where
+    f s = [makeSquare s]
+    g (s, (p1 ,p2)) = [makeSquare s] ++ p1 ++ p2
+            
+makeSquare :: Square -> Picture
+makeSquare s = square1 (centerS s) s (rotateS s)
+
+square1 :: Point -> Square -> Bool -> Picture
+square1 (x,y) l True = translate x y $ rectangleSolid l l
+square1 (x,y) l False = rotate 90 $ translate x y $ rectangleSolid l l
+
+rotateS :: Square -> Bool
+rotateS _ = True
+
+centerS :: Square -> (Float, Float)
+centerS _ = (0,0)
+
+
+
+{-
+drawSquare :: PTree -> Either [Picture] ([Picture], (PTree, PTree))
+drawSquare (Unit s) = Left [square1 (0,0) s True]
+drawSquare (Comp s t1 t2) = Right ([(square1 (0,0) s False)], (t1, t2)) 
+
+drawPTree = anaFTree drawSquare
+-}
+
+
+
 \end{code}
 
 \subsection*{Problema 5}

@@ -1056,29 +1056,50 @@ hyloQTree a c = cataQTree a . anaQTree c
 instance Functor QTree where
     fmap f = cataQTree ( inQTree . baseQTree f id )
 
+--1
 --rotateQTree :: QTree a -> QTree a
-rotateQTree = cataQTree rotateQ
+rotateQTree = cataQTree (either f g) where
+    f (k,(x,y)) = Cell k y x
+    g (a,(b,(c,d))) = Block c a d b
 
-rotateQ :: Either (b, (Int, Int)) (QTree b, (QTree b, (QTree b, QTree b))) -> QTree b
-rotateQ (Left (c, (x, y))) = Cell c y x
-rotateQ (Right (a, (b, (c, d)))) = Block c a d b
 
 --scaleQTree :: Int -> QTree a -> QTree a
-scaleQTree n = cataQTree (scaleQ n)
+scaleQTree n = cataQTree (either f g) where
+    f (k,(x,y)) = Cell k (x*n) (y*n)
+    g (a,(b,(c,d))) = Block a b c d
 
-scaleQ :: Int -> Either (b, (Int, Int)) (QTree b, (QTree b, (QTree b, QTree b))) -> QTree b
-scaleQ n (Left (c, (x, y))) = Cell c (x*n) (y*n)
-scaleQ n (Right (a, (b, (c, d)))) = Block a b c d
 
 --invertQTree :: QTree PixelRGBA8 -> QTree PixelRGBA8
-invertQTree = cataQTree invertQ
+invertQTree = cataQTree (either f g) where
+    f ((PixelRGBA8 r g b a),(x,y)) = Cell (PixelRGBA8 (255 - r) (255 - g) (255 - b) a) x y
+    g (a,(b,(c,d))) = Block a b c d
 
-invertQ :: Either (PixelRGBA8, (Int, Int)) (QTree PixelRGBA8, (QTree PixelRGBA8, (QTree PixelRGBA8, QTree PixelRGBA8))) -> QTree PixelRGBA8
-invertQ (Left ((PixelRGBA8 r g b a), (x, y))) = Cell (PixelRGBA8 (255 - r) (255 - g) (255 - b) a) x y
-invertQ (Right (a, (b, (c, d)))) = Block a b c d
 
-compressQTree = undefined
-outlineQTree = undefined
+--2     NAO FUNCIONA usar o n
+--compressQTree :: Int -> QTree a -> QTree a
+compressQTree n = cataQTree (either f g) where
+    f (k,(x,y)) = Cell k x y
+    g (Cell a xa ya, (Cell b xb yb, (Cell c xc yc, Cell d xd yd))) = Cell a (xa + xb + xc + xd) (ya + yb + yc + yd)
+    g (a,(b,(c,d))) = Block a b c d
+
+--compressBMP 1 "cp1718t_media/person.bmp" "person1.bmp"
+--compressBMP 2 "cp1718t_media/person.bmp" "person2.bmp"
+--compressBMP 3 "cp1718t_media/person.bmp" "person3.bmp"
+--compressBMP 4 "cp1718t_media/person.bmp" "person4.bmp"
+
+
+--3      
+--outlineQTree :: (a -> Bool ) -> QTree a -> Matrix Bool
+outlineQTree h = cataQTree (either f g) where
+    f (k,(x,y)) = matrix y x (const (h k))
+    g (a,(b,(c,d))) = (a <|> b) <-> (c <|> d)
+
+-- <|> junta matrizes horizontalmente
+-- <-> junta matrizes verticalmente
+--outlineBMP "cp1718t_media/person.bmp" "personOut1.bmp"
+--addOutlineBMP "cp1718t_media/person.bmp" "personOut2.bmp"
+--nao funciona o teste2a
+
 \end{code}
 
 \subsection*{Problema 3}
@@ -1125,23 +1146,16 @@ instance Bifunctor FTree where
 --countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
 
 --generatePTree :: Int -> PTree  
-generatePTree = anaFTree generateSquare 
-
-generateSquare :: Int -> Either Square (Square, (Int, Int))
-generateSquare 0 = Left 1
-generateSquare n = Right (r , ((n-1), (n-1)))
-                    where r = (sqrt 2) ^ (fromIntegral n)
-
-
+generatePTree = anaFTree f where
+    f n = if (n == 0) then i1 1 else i2 (r, ((n-1), (n-1)))
+     where  r = (sqrt 2) ^ (fromIntegral n)
 
 
 --drawPTree :: PTree -> [Picture] cata e/ou ana
-drawPTree = cataFTree drawSquare
+drawPTree = cataFTree (either f g) where
+    f s = [makeSquare s]
+    g (s, (p1 ,p2)) = [makeSquare s] ++ p1 ++ p2
             
-drawSquare :: Either Square (Square, ([Picture], [Picture])) -> [Picture]
-drawSquare (Left s) = [makeSquare s]
-drawSquare (Right (s, (p1 ,p2))) = [makeSquare s] ++ p1 ++ p2
-
 makeSquare :: Square -> Picture
 makeSquare s = square1 (centerS s) s (rotateS s)
 

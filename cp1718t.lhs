@@ -1056,9 +1056,27 @@ hyloQTree a c = cataQTree a . anaQTree c
 instance Functor QTree where
     fmap f = cataQTree ( inQTree . baseQTree f id )
 
-rotateQTree = undefined
-scaleQTree = undefined 
-invertQTree = undefined
+--rotateQTree :: QTree a -> QTree a
+rotateQTree = cataQTree rotateQ
+
+rotateQ :: Either (b, (Int, Int)) (QTree b, (QTree b, (QTree b, QTree b))) -> QTree b
+rotateQ (Left (c, (x, y))) = Cell c y x
+rotateQ (Right (a, (b, (c, d)))) = Block c a d b
+
+--scaleQTree :: Int -> QTree a -> QTree a
+scaleQTree n = cataQTree (scaleQ n)
+
+scaleQ :: Int -> Either (b, (Int, Int)) (QTree b, (QTree b, (QTree b, QTree b))) -> QTree b
+scaleQ n (Left (c, (x, y))) = Cell c (x*n) (y*n)
+scaleQ n (Right (a, (b, (c, d)))) = Block a b c d
+
+--invertQTree :: QTree PixelRGBA8 -> QTree PixelRGBA8
+invertQTree = cataQTree invertQ
+
+invertQ :: Either (PixelRGBA8, (Int, Int)) (QTree PixelRGBA8, (QTree PixelRGBA8, (QTree PixelRGBA8, QTree PixelRGBA8))) -> QTree PixelRGBA8
+invertQ (Left ((PixelRGBA8 r g b a), (x, y))) = Cell (PixelRGBA8 (255 - r) (255 - g) (255 - b) a) x y
+invertQ (Right (a, (b, (c, d)))) = Block a b c d
+
 compressQTree = undefined
 outlineQTree = undefined
 \end{code}
@@ -1106,25 +1124,48 @@ instance Bifunctor FTree where
 --invFTree = cataFTree (inFTree . (id -|- id >< swap))
 --countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
 
---generatePTree :: Int -> PTree  ana
+--generatePTree :: Int -> PTree  
+generatePTree = anaFTree generateSquare 
+
 generateSquare :: Int -> Either Square (Square, (Int, Int))
 generateSquare 0 = Left 1
 generateSquare n = Right (r , ((n-1), (n-1)))
-                    where r = (sqrt 2) ^ (fromIntegral n) 
+                    where r = (sqrt 2) ^ (fromIntegral n)
 
-generatePTree = anaFTree generateSquare 
+
 
 
 --drawPTree :: PTree -> [Picture] cata e/ou ana
-drawPTree (Unit s) = undefined
-drawPTree (Comp s t1 t2) = undefined  
+drawPTree = cataFTree drawSquare
+            
+drawSquare :: Either Square (Square, ([Picture], [Picture])) -> [Picture]
+drawSquare (Left s) = [makeSquare s]
+drawSquare (Right (s, (p1 ,p2))) = [makeSquare s] ++ p1 ++ p2
 
---drawLeft ps l c (Unit s) = (square1 c s False):ps
---drawLeft ps l c (Comp s t1 t2) = (drawLeft [] l c)  ++ (drawLeft [] l c) ++ (square1 c s False):ps
+makeSquare :: Square -> Picture
+makeSquare s = square1 (centerS s) s (rotateS s)
 
 square1 :: Point -> Square -> Bool -> Picture
 square1 (x,y) l True = translate x y $ rectangleSolid l l
 square1 (x,y) l False = rotate 90 $ translate x y $ rectangleSolid l l
+
+rotateS :: Square -> Bool
+rotateS _ = True
+
+centerS :: Square -> (Float, Float)
+centerS _ = (0,0)
+
+
+
+{-
+drawSquare :: PTree -> Either [Picture] ([Picture], (PTree, PTree))
+drawSquare (Unit s) = Left [square1 (0,0) s True]
+drawSquare (Comp s t1 t2) = Right ([(square1 (0,0) s False)], (t1, t2)) 
+
+drawPTree = anaFTree drawSquare
+-}
+
+
 
 \end{code}
 

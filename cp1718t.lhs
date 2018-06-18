@@ -1020,6 +1020,7 @@ isValidMagicNr = isSingle . group . sort . getMagicNos
         --isSingle [] = True
         --isSingle (h:t) = (length h == 1) && isSingle t
         isSingle = cataList $ either (const True) (uncurry (&&) . ((uncurry (==) . split (length) (const 1)) >< id))
+
 \end{code}
 
 
@@ -1130,8 +1131,11 @@ square1 (x,y) l False = rotate 90 $ translate x y $ rectangleSolid l l
 \subsection*{Problema 5}
 
 \begin{code}
-singletonbag = undefined
-muB = undefined
+singletonbag = B . cons . split (split id (const 0)) nil
+muB = head . fsts . takeOutBag
+    where
+        fsts = cataList $ either nil (cons . (p1 >< id))
+        takeOutBag (B b) = b
 dist = undefined
 \end{code}
 

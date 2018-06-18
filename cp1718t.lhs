@@ -1107,11 +1107,11 @@ instance Bifunctor FTree where
 
 --generatePTree :: Int -> PTree  ana
 generateSquare :: Int -> Either Square (Square, (Int, Int))
-generateSquare n | n == 0 = Left 1
-                 | otherwise = Right (r , ((n-1), (n-1)))
-                        where r = (sqrt 2) ^ (fromIntegral n) 
+generateSquare 0 = Left 1
+generateSquare n = Right (r , ((n-1), (n-1)))
+                    where r = (sqrt 2) ^ (fromIntegral n) 
 
-generatePTree n = anaFTree generateSquare n
+generatePTree = anaFTree generateSquare 
 
 
 --drawPTree :: PTree -> [Picture] cata e/ou ana

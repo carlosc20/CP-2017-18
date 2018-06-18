@@ -1029,31 +1029,34 @@ isValidMagicNr = isSingle . group . sort . getMagicNos
 --data QTree a = Cell a Int Int | Block (QTree a) (QTree a) (QTree a) (QTree a) deriving (Eq,Show)
 
 --inQTree :: Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a))) -> QTree a
-inQTree = undefined --either Cell Block
+inQTree = either (uncurry2 Cell) (uncurry3 Block)
+            where uncurry3 f = \(a, (b, (c, d))) -> f a b c d
+                  uncurry2 f = \(x, (y, z)) -> f x y z
 
 --outQTree :: QTree a -> Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a)))
-outQTree = undefined
+outQTree (Cell a x y)        = Left (a, (x, y))
+outQTree (Block t1 t2 t3 t4) = Right (t1,(t2, (t3, t4)))
 
 --baseQTree :: (a1 -> b) -> (a2 -> d1) -> Either (a1, d2) (a2, (a2, (a2, a2))) -> Either (b, d2) (d1, (d1, (d1, d1)))
-baseQTree = undefined  --baseQTree f g  = (f >< id) -|- (g >< (g >< (g >< g)))
+baseQTree f g  = (f >< id) -|- (g >< (g >< (g >< g)))
 
 --recQTree :: (a -> d1) -> Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (d1, (d1, (d1, d1)))
-recQTree = undefined  -- recQTree f = baseQTree id f
+recQTree f = baseQTree id f
 
 --cataQTree :: (Either (b, (Int, Int)) (d, (d, (d, d))) -> d) -> QTree b -> d
-cataQTree = undefined
+cataQTree a = a . (recQTree (cataQTree a)) . outQTree
 
 --anaQTree :: (a1 -> Either (a2, (Int, Int)) (a1, (a1, (a1, a1)))) -> a1 -> QTree a2
-anaQTree = undefined
+anaQTree f = inQTree . (recQTree (anaQTree f) ) . f
 
 --hyloQTree :: (Either (b, (Int, Int)) (c, (c, (c, c))) -> c) -> (a -> Either (b, (Int, Int)) (a, (a, (a, a)))) -> a -> c
-hyloQTree = undefined
+hyloQTree a c = cataQTree a . anaQTree c
 
 instance Functor QTree where
-    fmap = undefined --cataQTree ( inQTree . baseQTree f id )
+    fmap f = cataQTree ( inQTree . baseQTree f id )
 
 rotateQTree = undefined
-scaleQTree = undefined
+scaleQTree = undefined 
 invertQTree = undefined
 compressQTree = undefined
 outlineQTree = undefined
@@ -1102,8 +1105,26 @@ instance Bifunctor FTree where
 --invFTree = cataFTree (inFTree . (id -|- id >< swap))
 --countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
 
-generatePTree = undefined --ana
-drawPTree = undefined     --cata e/ou ana
+--generatePTree :: Int -> PTree  ana
+generateSquare :: Int -> Either Square (Square, (Int, Int))
+generateSquare n | n == 0 = Left 1
+                 | otherwise = Right (r , ((n-1), (n-1)))
+                        where r = (sqrt 2) ^ (fromIntegral n) 
+
+generatePTree n = anaFTree generateSquare n
+
+
+--drawPTree :: PTree -> [Picture] cata e/ou ana
+drawPTree (Unit s) = undefined
+drawPTree (Comp s t1 t2) = undefined  
+
+--drawLeft ps l c (Unit s) = (square1 c s False):ps
+--drawLeft ps l c (Comp s t1 t2) = (drawLeft [] l c)  ++ (drawLeft [] l c) ++ (square1 c s False):ps
+
+square1 :: Point -> Square -> Bool -> Picture
+square1 (x,y) l True = translate x y $ rectangleSolid l l
+square1 (x,y) l False = rotate 90 $ translate x y $ rectangleSolid l l
+
 \end{code}
 
 \subsection*{Problema 5}

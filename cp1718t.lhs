@@ -1110,12 +1110,25 @@ drawPTree = undefined     --cata e/ou ana
 \subsection*{Problema 5}
 
 \begin{code}
-singletonbag = B . cons . split (split id (const 0)) nil
-muB = head . fsts . takeOutBag
+{-
+singletonbag = B . groupBag . groupBy (\(e1, _) (e2, _) -> e1 == e2) . sort . cons . split (split id (const 1)) nil
     where
-        fsts = cataList $ either nil (cons . (p1 >< id))
-        takeOutBag (B b) = b
+        groupBag = (cataList $ either nil (cons . (split e (sum . snds) >< id)))
+            where
+                e = p1 . head
+                snds = cataList $ either nil (cons . (p2 >< id)) -- Retorna os segundos elementos de uma lista
+-}
+singletonbag = B . cons . split (split id (const 1)) nil
+
+muB (B l) = B $ aux l
+    where
+        aux = cataList $ either nil (uncurry (++) . ((uncurry f . swap . unBag) >< id))
+            where
+                unBag (B a, b) = (a, b)
+                f n = cataList $ either nil (cons . ((id >< (*n)) >< id))
+
 dist = undefined
+
 \end{code}
 
 \section{Como exprimir cálculos e diagramas em LaTeX/lhs2tex}

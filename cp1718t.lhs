@@ -980,7 +980,7 @@ inBlockchain = either Bc Bcs
 outBlockchain (Bc b)  = i1 b
 outBlockchain (Bcs b) = i2 b
 
-recBlockchain = (id -|-) . (id ><)
+recBlockchain f =  (id -|- (id >< f))
 
 cataBlockchain f = f . (recBlockchain (cataBlockchain f)) . outBlockchain
 
@@ -1035,8 +1035,8 @@ inQTree = either (uncurry2 Cell) (uncurry3 Block)
                   uncurry2 f = \(x, (y, z)) -> f x y z
 
 --outQTree :: QTree a -> Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a)))
-outQTree (Cell a x y)        = Left (a, (x, y))
-outQTree (Block t1 t2 t3 t4) = Right (t1,(t2, (t3, t4)))
+outQTree (Cell a x y)        = i1 (a, (x, y))
+outQTree (Block t1 t2 t3 t4) = i2 (t1,(t2, (t3, t4)))
 
 --baseQTree :: (a1 -> b) -> (a2 -> d1) -> Either (a1, d2) (a2, (a2, (a2, a2))) -> Either (b, d2) (d1, (d1, (d1, d1)))
 baseQTree f g  = (f >< id) -|- (g >< (g >< (g >< g)))
@@ -1121,8 +1121,8 @@ inFTree = either Unit (uncurry2 Comp)
             where uncurry2 f = \(x, (y, z)) -> f x y z
 
 --outFTree :: FTree a1 a2 -> Either a2 (a1, (FTree a1 a2, FTree a1 a2))
-outFTree (Unit c)       = Left c
-outFTree (Comp a t1 t2) = Right (a, (t1, t2))
+outFTree (Unit c)       = i1 c
+outFTree (Comp a t1 t2) = i2 (a, (t1, t2))
 
 --baseFTree :: (a1 -> b1) -> (a2 -> b2) -> (a3 -> d) -> Either a2 (a1, (a3, a3)) -> Either b2 (b1, (d, d))
 baseFTree f g h  = g -|- (f  >< (h >< h))

@@ -105,13 +105,13 @@
 
 \begin{center}\large
 \begin{tabular}{ll}
-\textbf{Grupo} nr. & 99 (preencher)
+\textbf{Grupo} nr. & 23
 \\\hline
-a11111 & Nome1 (preencher)
+a81946 & Carlos Castro
 \\
-a22222 & Nome2 (preencher)
+a81302 & Daniel Costa
 \\
-a33333 & Nome3 (preencher)
+a80494 & Luís Macedo
 \end{tabular}
 \end{center}
 
@@ -1027,7 +1027,6 @@ isValidMagicNr = isSingle . group . sort . getMagicNos
 \subsection*{Problema 2}
 
 \begin{code}
---data QTree a = Cell a Int Int | Block (QTree a) (QTree a) (QTree a) (QTree a) deriving (Eq,Show)
 
 --inQTree :: Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a))) -> QTree a
 inQTree = either (uncurry2 Cell) (uncurry3 Block)
@@ -1094,7 +1093,7 @@ outlineQTree h = cataQTree (either f g) where
     f (k,(x,y)) = matrix y x (const (h k))
     g (a,(b,(c,d))) = (a <|> b) <-> (c <|> d)
 
--- <|> junta matrizes horizontalmente
+-- <(AQUI COLOCA-SE UMA BARRA VERTICAL)> junta matrizes horizontalmente
 -- <-> junta matrizes verticalmente
 --outlineBMP "cp1718t_media/person.bmp" "personOut1.bmp"
 --addOutlineBMP "cp1718t_media/person.bmp" "personOut2.bmp"
@@ -1112,7 +1111,7 @@ loop = undefined
 \subsection*{Problema 4}
 
 \begin{code}
---data FTree a b = Unit b | Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
+--data FTree a b = Unit b (AQUI COLOCA-SE UMA BARRA VERTICAL) Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
 --type PTree = FTree Square Square
 --type Square = Float
 
@@ -1142,7 +1141,7 @@ hyloFTree a c = cataFTree a . anaFTree c
 instance Bifunctor FTree where
     bimap f g = cataFTree ( inFTree . baseFTree f g id )
 
---invFTree = cataFTree (inFTree . (id -|- id >< swap))
+--invFTree = cataFTree (inFTree . (id -(AQUI COLOCA-SE UMA BARRA VERTICAL)- id >< swap))
 --countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
 
 --generatePTree :: Int -> PTree  

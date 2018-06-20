@@ -1073,16 +1073,16 @@ invertQTree = cataQTree (either f g) where
     f ((PixelRGBA8 r g b a),(x,y)) = Cell (PixelRGBA8 (255 - r) (255 - g) (255 - b) a) x y
     g (a,(b,(c,d))) = Block a b c d
 
---2     NAO FUNCIONA usar o n
+--Melhorar
 --compressQTree :: Int -> QTree a -> QTree a
 
-compressQTree n a = cutTree ((depthQTree a) - n) a
+compressQTree n = (uncurry (cutTree)) . split ((+(-n)) . depthQTree) id
     where
         cutTree 0 a = compress a
             where
                 compress = cataQTree (either f g) where
                     f (k,(x,y)) = Cell k x y
-                    g (Cell a xa ya, (Cell b xb yb, (Cell c xc yc, Cell d xd yd))) = Cell a (xa + xb) (yc + yd)
+                    g (Cell a xa ya, (Cell _ xb _, (Cell _ _ yc, _))) = Cell a (xa + xb) (ya + yc)
                     g (a,(b,(c,d))) = Block a b c d
         cutTree n (Block a b c d) = Block (cutTree (n - 1) a) (cutTree (n - 1) b) (cutTree (n - 1) c) (cutTree (n - 1) d)
         cutTree n a = a
@@ -1117,8 +1117,12 @@ outlineQTree h = cataQTree (either f g) where
 \subsection*{Problema 3}
 
 \begin{code}
-base = undefined
-loop = undefined
+--Ainda não funciona, mas compila
+base k = (1, 1, k + 1, 1)
+loop = pack . split (split (succ.p1.p1) (mul.p1)) (split (succ.p1.p2) (mul.p2)) . unpack
+    where
+        unpack (a, b, c, d) = ((a, b), (c, d))
+        pack ((a, b), (c, d)) = (a, b, c, d)
 \end{code}
 
 \subsection*{Problema 4}
@@ -1473,7 +1477,7 @@ invertbm = qt2bm . invertQTree . bm2qt
 invertBMP :: FilePath -> FilePath -> IO ()
 invertBMP from to = withBMP from to invertbm
 
---depthQTree :: QTree a -> Int
+depthQTree :: QTree a -> Int
 depthQTree = cataQTree (either (const 0) f)
     where f (a,(b,(c,d))) = 1 + maximum [a,b,c,d] --Corrigido, era equivalente a const 0
 

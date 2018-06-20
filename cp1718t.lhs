@@ -1073,13 +1073,26 @@ invertQTree = cataQTree (either f g) where
     f ((PixelRGBA8 r g b a),(x,y)) = Cell (PixelRGBA8 (255 - r) (255 - g) (255 - b) a) x y
     g (a,(b,(c,d))) = Block a b c d
 
-
 --2     NAO FUNCIONA usar o n
 --compressQTree :: Int -> QTree a -> QTree a
+
+compressQTree n a = cutTree ((depthQTree a) - n) a
+    where
+        cutTree 0 a = compress a
+            where
+                compress = cataQTree (either f g) where
+                    f (k,(x,y)) = Cell k x y
+                    g (Cell a xa ya, (Cell b xb yb, (Cell c xc yc, Cell d xd yd))) = Cell a (xa + xb) (yc + yd)
+                    g (a,(b,(c,d))) = Block a b c d
+        cutTree n (Block a b c d) = Block (cutTree (n - 1) a) (cutTree (n - 1) b) (cutTree (n - 1) c) (cutTree (n - 1) d)
+        cutTree n a = a
+
+{-
 compressQTree n = cataQTree (either f g) where
     f (k,(x,y)) = Cell k x y
-    g (Cell a xa ya, (Cell b xb yb, (Cell c xc yc, Cell d xd yd))) = Cell a (xa + xb + xc + xd) (ya + yb + yc + yd)
+    g (Cell a xa ya, (Cell b xb yb, (Cell c xc yc, Cell d xd yd))) = Cell a (xa + xb) (yc + yd)
     g (a,(b,(c,d))) = Block a b c d
+-}
 
 --compressBMP 1 "cp1718t_media/person.bmp" "person1.bmp"
 --compressBMP 2 "cp1718t_media/person.bmp" "person2.bmp"
@@ -1087,7 +1100,7 @@ compressQTree n = cataQTree (either f g) where
 --compressBMP 4 "cp1718t_media/person.bmp" "person4.bmp"
 
 
---3      
+--3
 --outlineQTree :: (a -> Bool ) -> QTree a -> Matrix Bool
 outlineQTree h = cataQTree (either f g) where
     f (k,(x,y)) = matrix y x (const (h k))
@@ -1144,7 +1157,7 @@ instance Bifunctor FTree where
 --invFTree = cataFTree (inFTree . (id -(AQUI COLOCA-SE UMA BARRA VERTICAL)- id >< swap))
 --countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
 
---generatePTree :: Int -> PTree  
+--generatePTree :: Int -> PTree
 generatePTree = anaFTree f where
     f n = if (n == 0) then i1 1 else i2 (r, ((n-1), (n-1)))
      where  r = (sqrt 2) ^ (fromIntegral n)
@@ -1154,7 +1167,7 @@ generatePTree = anaFTree f where
 drawPTree = cataFTree (either f g) where
     f s = [makeSquare s]
     g (s, (p1 ,p2)) = [makeSquare s] ++ p1 ++ p2
-            
+
 makeSquare :: Square -> Picture
 makeSquare s = square1 (centerS s) s (rotateS s)
 
@@ -1173,7 +1186,7 @@ centerS _ = (0,0)
 {-
 drawSquare :: PTree -> Either [Picture] ([Picture], (PTree, PTree))
 drawSquare (Unit s) = Left [square1 (0,0) s True]
-drawSquare (Comp s t1 t2) = Right ([(square1 (0,0) s False)], (t1, t2)) 
+drawSquare (Comp s t1 t2) = Right ([(square1 (0,0) s False)], (t1, t2))
 
 drawPTree = anaFTree drawSquare
 -}
@@ -1195,7 +1208,7 @@ singletonbag = B . groupBag . groupBy (\(e1, _) (e2, _) -> e1 == e2) . sort . co
 -}
 singletonbag = B . cons . split (split id (const 1)) nil
 
-muB = B . aux . unBag
+muB =  B . aux . unBag
     where
         unBag (B a) = a
         aux = cataList $ either nil (uncurry (++) . ((uncurry f . swap . unBag2) >< id))
@@ -1460,9 +1473,9 @@ invertbm = qt2bm . invertQTree . bm2qt
 invertBMP :: FilePath -> FilePath -> IO ()
 invertBMP from to = withBMP from to invertbm
 
-depthQTree :: QTree a -> Int
+--depthQTree :: QTree a -> Int
 depthQTree = cataQTree (either (const 0) f)
-    where f (a,(b,(c,d))) = maximum [a,b,c,d]
+    where f (a,(b,(c,d))) = 1 + maximum [a,b,c,d] --Corrigido, era equivalente a const 0
 
 compressbm :: Eq a => Int -> Matrix a -> Matrix a
 compressbm n = qt2bm . compressQTree n . bm2qt

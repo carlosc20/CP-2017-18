@@ -988,9 +988,7 @@ anaBlockchain f = inBlockchain . (recBlockchain (anaBlockchain f) ) . f
 
 hyloBlockchain f g = cataBlockchain f . anaBlockchain g
 
---allTransactions (Bc (_, (_, t))) = t
---allTransactions (Bcs ((_, (_, t)), b)) = t ++ allTransactions b
-allTransactions = cataBlockchain $ either (p2 . p2) (uncurry (++) . split (p2 . p2 . p1) p2)
+allTransactions = cataBlockchain $ either (p2 . p2) (conc . ((p2 . p2) >< id))
 
 ledger = groupTransactions . groupBy (\(e1, _) (e2, _) -> e1 == e2) . sort . splitTransactions . allTransactions
     where
@@ -1012,14 +1010,12 @@ ledger = groupTransactions . groupBy (\(e1, _) (e2, _) -> e1 == e2) . sort . spl
                 e = p1 . head
                 snds = cataList $ either nil (cons . (p2 >< id)) -- Retorna os segundos elementos de uma lista
 
-isValidMagicNr = isSingle . group . sort . getMagicNos
+isValidMagicNr = isSingle . group . sort . getMagicNrs
     where
-        --getMagicNos (Bc (n, _)) = [n]
-        --getMagicNos (Bcs ((n,_),b)) = n:getMagicNos b
-        getMagicNos = cataBlockchain $ either (cons . split p1 nil) (cons . (p1 >< id))
-        --isSingle [] = True
-        --isSingle (h:t) = (length h == 1) && isSingle t
-        isSingle = cataList $ either (const True) (uncurry (&&) . ((uncurry (==) . split (length) (const 1)) >< id))
+        getMagicNrs = cataBlockchain $ either (singl . p1) (cons . (p1 >< id))
+        isSingle = cataList $ either true (uncurry (&&) . (((1==) . length) >< id))
+
+
 
 \end{code}
 
@@ -1027,53 +1023,40 @@ isValidMagicNr = isSingle . group . sort . getMagicNos
 \subsection*{Problema 2}
 
 \begin{code}
---inQTree :: Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a))) -> QTree a
 inQTree = either (uncurry2 Cell) (uncurry3 Block)
             where uncurry3 f = \(a, (b, (c, d))) -> f a b c d
                   uncurry2 f = \(x, (y, z)) -> f x y z
 
---outQTree :: QTree a -> Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a)))
 outQTree (Cell a x y)        = i1 (a, (x, y))
 outQTree (Block t1 t2 t3 t4) = i2 (t1,(t2, (t3, t4)))
 
---baseQTree :: (a1 -> b) -> (a2 -> d1) -> Either (a1, d2) (a2, (a2, (a2, a2))) -> Either (b, d2) (d1, (d1, (d1, d1)))
 baseQTree f g  = (f >< id) -|- (g >< (g >< (g >< g)))
 
---recQTree :: (a -> d1) -> Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (d1, (d1, (d1, d1)))
 recQTree f = baseQTree id f
 
---cataQTree :: (Either (b, (Int, Int)) (d, (d, (d, d))) -> d) -> QTree b -> d
 cataQTree a = a . (recQTree (cataQTree a)) . outQTree
 
---anaQTree :: (a1 -> Either (a2, (Int, Int)) (a1, (a1, (a1, a1)))) -> a1 -> QTree a2
 anaQTree f = inQTree . (recQTree (anaQTree f) ) . f
 
---hyloQTree :: (Either (b, (Int, Int)) (c, (c, (c, c))) -> c) -> (a -> Either (b, (Int, Int)) (a, (a, (a, a)))) -> a -> c
 hyloQTree a c = cataQTree a . anaQTree c
 
 instance Functor QTree where
     fmap f = cataQTree ( inQTree . baseQTree f id )
 
---1----------------------------------------------------------------------------------------------------
---rotateQTree :: QTree a -> QTree a
 
-rotateQTree = cataQTree (either f g) where
+rotateQTree = cataQTree $ either f g where
     f (k,(x,y)) = Cell k y x
     g (a,(b,(c,d))) = Block c a d b
 
---rotateQTree = cataQTree (inQTree . (id >< swap) -|- (id >< (id >< (id >< id))))
+scaleQTree n = cataQTree $ inQTree . ((id >< ((n*) >< (n*)) -|- id))
 
--------------------------------------------------------------------------------------------------------
---scaleQTree :: Int -> QTree a -> QTree a
-scaleQTree n = cataQTree (inQTree . ((id >< ((n*) >< (n*)) -|- id))
-
--------------------------------------------------------------------------------------------------------
---invertQTree :: QTree PixelRGBA8 -> QTree PixelRGBA8
-invertQTree = fmap (\(PixelRGBA8 r g b a) -> PixelRGBA8 (255 - r) (255 - g) (255 - b) a)
+invertQTree = fmap $ \(PixelRGBA8 r g b a) -> (PixelRGBA8 (255 - r) (255 - g) (255 - b) a)
 
 --2----------------------------------------------------------------------------------------------------
 --Melhorar
 --compressQTree :: Int -> QTree a -> QTree a
+
+--cataNat g   = g . recNat (cataNat g) . outNat
 
 compressQTree n = (uncurry (cutTree)) . split ((+(-n)) . depthQTree) id
     where
@@ -1091,14 +1074,10 @@ compressQTree n = (uncurry (cutTree)) . split ((+(-n)) . depthQTree) id
 --compressBMP 3 "cp1718t_media/person.bmp" "person3.bmp"
 --compressBMP 4 "cp1718t_media/person.bmp" "person4.bmp"
 
---3----------------------------------------------------------------------------------------------------   
---outlineQTree :: (a -> Bool ) -> QTree a -> Matrix Bool
+
 outlineQTree h = cataQTree (either f g) where
     f (k,(x,y)) = matrix y x (\(b,a) -> (p2p (False, (h k)) (b == y || b == 1 || a == x || a == 1)))
     g (a,(b,(c,d))) = (a <|> b) <-> (c <|> d)
-
---outlineBMP "cp1718t_media/person.bmp" "personOut1.bmp"
---addOutlineBMP "cp1718t_media/person.bmp" "personOut2.bmp"
 
 \end{code}
 
@@ -1149,15 +1128,15 @@ hyloFTree a c = cataFTree a . anaFTree c
 instance Bifunctor FTree where
     bimap f g = cataFTree ( inFTree . baseFTree f g id )
 
---countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
+
 -------------------------------------------------------------------------------------------------------
 --generatePTree :: Int -> PTree  
---invFTree = cataFTree (inFTree . (id + id >< swap))
-
-generatePTree = anaFTree f where
+generatePTree n = anaFTree f n where
     f n = p2p (i2 (r, ((n-1), (n-1))), i1 1) (n == 0)
      where  r = (sqrt 2) ^ (fromIntegral n)
 
+--invFTree = cataFTree (inFTree . (id + id >< swap))
+--countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
 -------------------------------------------------------------------------------------------------------
 --drawPTree :: PTree -> [Picture] cata e/ou ana
 
@@ -1195,15 +1174,8 @@ drawPTree = anaFTree drawSquare
 \subsection*{Problema 5}
 
 \begin{code}
-{-
-singletonbag = B . groupBag . groupBy (\(e1, _) (e2, _) -> e1 == e2) . sort . cons . split (split id (const 1)) nil
-    where
-        groupBag = (cataList $ either nil (cons . (split e (sum . snds) >< id)))
-            where
-                e = p1 . head
-                snds = cataList $ either nil (cons . (p2 >< id)) -- Retorna os segundos elementos de uma lista
--}
-singletonbag = B . cons . split (split id (const 1)) nil
+
+singletonbag = B . singl . (split id (const 1)) 
 
 muB =  B . aux . unBag
     where

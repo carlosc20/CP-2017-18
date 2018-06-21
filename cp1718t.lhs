@@ -660,7 +660,7 @@ g 0 = 1
 g (d+1) = underbrace ((d+1)) (s d) * g d
 
 s 0 = 1
-s (d+1) = s n + 1
+s (d+1) = s d + 1
 \end{spec}
 A partir daqui alguém derivou a seguinte implementação:
 \begin{code}
@@ -673,7 +673,7 @@ derive as funções |base k| e |loop| que são usadas como auxiliares acima.
 \begin{propriedade}
 Verificação que |bin n k| coincide com a sua especificação (\ref{eq:bin}):
 \begin{code}
-prop3 n k = (bin n k) == (fac n) % (fac k * (fac ((n-k))))
+prop3 (NonNegative n) (NonNegative k) = k <= n ==> (bin n k) == (fac n) % (fac k * (fac ((n-k))))
 \end{code}
 \end{propriedade}
 
@@ -1027,8 +1027,6 @@ isValidMagicNr = isSingle . group . sort . getMagicNos
 \subsection*{Problema 2}
 
 \begin{code}
---data QTree a = Cell a Int Int | Block (QTree a) (QTree a) (QTree a) (QTree a) deriving (Eq,Show)
-
 --inQTree :: Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a))) -> QTree a
 inQTree = either (uncurry2 Cell) (uncurry3 Block)
             where uncurry3 f = \(a, (b, (c, d))) -> f a b c d
@@ -1056,46 +1054,60 @@ hyloQTree a c = cataQTree a . anaQTree c
 instance Functor QTree where
     fmap f = cataQTree ( inQTree . baseQTree f id )
 
+-------------------------------------------------------------------------------------------------------
 --1
 --rotateQTree :: QTree a -> QTree a
+
 rotateQTree = cataQTree (either f g) where
     f (k,(x,y)) = Cell k y x
     g (a,(b,(c,d))) = Block c a d b
 
+--rotateQTree = cataQTree (inQTree . (id >< swap) -|- (id >< (id >< (id >< id))))
 
+--rotateBMP "cp1718t_media/person.bmp" "person90.bmp"
+
+
+
+-------------------------------------------------------------------------------------------------------
 --scaleQTree :: Int -> QTree a -> QTree a
 scaleQTree n = cataQTree (either f g) where
     f (k,(x,y)) = Cell k (x*n) (y*n)
     g (a,(b,(c,d))) = Block a b c d
 
+--scaleBMP 2 "cp1718t_media/person.bmp" "personx2.bmp"
 
+-------------------------------------------------------------------------------------------------------
 --invertQTree :: QTree PixelRGBA8 -> QTree PixelRGBA8
-invertQTree = cataQTree (either f g) where
-    f ((PixelRGBA8 r g b a),(x,y)) = Cell (PixelRGBA8 (255 - r) (255 - g) (255 - b) a) x y
-    g (a,(b,(c,d))) = Block a b c d
+invertQTree = fmap (\(PixelRGBA8 r g b a) -> PixelRGBA8 (255 - r) (255 - g) (255 - b) a)
 
+--invertBMP "cp1718t_media/person.bmp" "personinv.bmp"
 
---2     NAO FUNCIONA usar o n
+-------------------------------------------------------------------------------------------------------
+--2    
 --compressQTree :: Int -> QTree a -> QTree a
-compressQTree n = cataQTree (either f g) where
-    f (k,(x,y)) = Cell k x y
-    g (Cell a xa ya, (Cell b xb yb, (Cell c xc yc, Cell d xd yd))) = Cell a (xa + xb + xc + xd) (ya + yb + yc + yd)
-    g (a,(b,(c,d))) = Block a b c d
+compressQTree n a = cutTree ((depthQTree a) - n) a
+    where
+        cutTree 0 a = compress a
+            where
+                compress = cataQTree (either f g) where
+                    f (k,(x,y)) = Cell k x y
+                    g (Cell a xa ya, (Cell b xb yb, (Cell c xc yc, Cell d xd yd))) = Cell a (xa + xb) (ya + yc)
+                    g (a,(b,(c,d))) = Block a b c d
+        cutTree n (Block a b c d) = Block (cutTree (n - 1) a) (cutTree (n - 1) b) (cutTree (n - 1) c) (cutTree (n - 1) d)
+        cutTree n a = a
 
 --compressBMP 1 "cp1718t_media/person.bmp" "person1.bmp"
 --compressBMP 2 "cp1718t_media/person.bmp" "person2.bmp"
 --compressBMP 3 "cp1718t_media/person.bmp" "person3.bmp"
 --compressBMP 4 "cp1718t_media/person.bmp" "person4.bmp"
 
-
+-------------------------------------------------------------------------------------------------------
 --3      
 --outlineQTree :: (a -> Bool ) -> QTree a -> Matrix Bool
 outlineQTree h = cataQTree (either f g) where
     f (k,(x,y)) = matrix y x (const (h k))
     g (a,(b,(c,d))) = (a <|> b) <-> (c <|> d)
 
--- <|> junta matrizes horizontalmente
--- <-> junta matrizes verticalmente
 --outlineBMP "cp1718t_media/person.bmp" "personOut1.bmp"
 --addOutlineBMP "cp1718t_media/person.bmp" "personOut2.bmp"
 --nao funciona o teste2a
@@ -1107,12 +1119,14 @@ outlineQTree h = cataQTree (either f g) where
 \begin{code}
 base = undefined
 loop = undefined
+--base k = split (split one one) (split (succ k) one) 
+--loop = split (split (succ.p1.p1) (mul.p1)) (split (succ.p1.p2) (mul.p2))
 \end{code}
 
 \subsection*{Problema 4}
 
 \begin{code}
---data FTree a b = Unit b | Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
+--data FTree a b = Unit b BARRA Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
 --type PTree = FTree Square Square
 --type Square = Float
 
@@ -1142,20 +1156,22 @@ hyloFTree a c = cataFTree a . anaFTree c
 instance Bifunctor FTree where
     bimap f g = cataFTree ( inFTree . baseFTree f g id )
 
---invFTree = cataFTree (inFTree . (id -|- id >< swap))
---countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
 
+--countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
+-------------------------------------------------------------------------------------------------------
 --generatePTree :: Int -> PTree  
 generatePTree = anaFTree f where
-    f n = if (n == 0) then i1 1 else i2 (r, ((n-1), (n-1)))
+    f n = p2p (i2 (r, ((n-1), (n-1))), i1 1) (n == 0)
      where  r = (sqrt 2) ^ (fromIntegral n)
 
-
+-------------------------------------------------------------------------------------------------------
 --drawPTree :: PTree -> [Picture] cata e/ou ana
+
 drawPTree = cataFTree (either f g) where
     f s = [makeSquare s]
     g (s, (p1 ,p2)) = [makeSquare s] ++ p1 ++ p2
-            
+
+--uncurry (++)
 makeSquare :: Square -> Picture
 makeSquare s = square1 (centerS s) s (rotateS s)
 
@@ -1463,7 +1479,7 @@ invertBMP from to = withBMP from to invertbm
 
 depthQTree :: QTree a -> Int
 depthQTree = cataQTree (either (const 0) f)
-    where f (a,(b,(c,d))) = maximum [a,b,c,d]
+    where f (a,(b,(c,d))) = 1 + maximum [a,b,c,d]
 
 compressbm :: Eq a => Int -> Matrix a -> Matrix a
 compressbm n = qt2bm . compressQTree n . bm2qt

@@ -1058,16 +1058,21 @@ invertQTree = fmap $ \(PixelRGBA8 r g b a) -> (PixelRGBA8 (255 - r) (255 - g) (2
 
 --cataNat g   = g . recNat (cataNat g) . outNat
 
+compress = cataQTree (either f g) where
+    f (k,(x,y)) = Cell k x y
+    g (Cell a xa ya, (Cell _ xb _, (Cell _ _ yc, _))) = Cell a (xa + xb) (ya + yc)
+    g (a,(b,(c,d))) = Block a b c d
+
 compressQTree n = (uncurry (cutTree)) . split ((+(-n)) . depthQTree) id
     where
-        cutTree 0 a = compress a
+        cutTree = cataNat $ either (const compress) recTree
             where
-                compress = cataQTree (either f g) where
-                    f (k,(x,y)) = Cell k x y
-                    g (Cell a xa ya, (Cell _ xb _, (Cell _ _ yc, _))) = Cell a (xa + xb) (ya + yc)
-                    g (a,(b,(c,d))) = Block a b c d
-        cutTree n (Block a b c d) = Block (cutTree (n - 1) a) (cutTree (n - 1) b) (cutTree (n - 1) c) (cutTree (n - 1) d)
-        cutTree n a = a
+                recTree f a = inQTree $ recQTree f (outQTree a)
+        compress = cataQTree (either f g)
+            where
+                f (k,(x,y)) = Cell k x y
+                g (Cell a xa ya, (Cell _ xb _, (Cell _ _ yc, _))) = Cell a (xa + xb) (ya + yc)
+                g (a,(b,(c,d))) = Block a b c d
 
 --compressBMP 1 "cp1718t_media/person.bmp" "person1.bmp"
 --compressBMP 2 "cp1718t_media/person.bmp" "person2.bmp"
@@ -1169,7 +1174,7 @@ drawPTree = cons.split (pictures.(map create).drawPTree2) nil
             where
                 left = map (f (-45)) (drawPTree2 l)
                 right = map (f 45) (drawPTree2 r)
-                f r = split (split s ((+r).a)) (split nx ny)
+                f r = split (split s na) (split nx ny)
                     where
                         mulf = uncurry(*) -- mul não aceita floats
                         addf = uncurry(+) -- add não aceita floats
@@ -1179,12 +1184,13 @@ drawPTree = cons.split (pictures.(map create).drawPTree2) nil
                         y = p2.p2 -- coordena y atual
                         d = signum r -- esquerda / direita
                         z = 2/(sqrt 2)
+                        na = (+r).a
                         mx = (*z).(*d).((/2).s)
                         my = (*z).s
-                        --tx = addf.split (mulf.split mx (cos.a)) (mulf.split my (sin.a)) -- tx = mx * cos(a) + my * sin(a)
-                        --ty = addf.split (mulf.split (negate.mx) (sin.a)) (mulf.split my (cos.a)) -- ty = -mx * sin(a) + my * cos(a)
-                        nx = addf.split mx x -- nx = x + tx
-                        ny = addf.split my y -- ny = y + ty
+                        tx = addf.split (mulf.split mx (cos.a)) (mulf.split my (sin.a)) -- tx = mx * cos(a) + my * sin(a)
+                        ty = addf.split (mulf.split (negate.mx) (sin.a)) (mulf.split my (cos.a)) -- ty = -mx * sin(a) + my * cos(a)
+                        nx = addf.split tx x -- nx = x + tx
+                        ny = addf.split ty y -- ny = y + ty
 {-
 drawSquare :: PTree -> Either [Picture] ([Picture], (PTree, PTree))
 drawSquare (Unit s) = Left [square1 (0,0) s True]

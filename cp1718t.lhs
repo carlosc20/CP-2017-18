@@ -1068,9 +1068,9 @@ compressQTree n = (uncurry (cutTree)) . split (subtract n . depthQTree) id
                 recTree f a = inQTree $ recQTree f (outQTree a)
         compress = cataQTree (either f g)
             where
-                f (k,(x,y)) = Cell k x y
+                f = inQTree . i1
                 g (Cell a xa ya, (Cell _ xb _, (Cell _ _ yc, _))) = Cell a (xa + xb) (ya + yc)
-                g (a,(b,(c,d))) = Block a b c d
+                g a = inQTree . i2 $ a
 
 --compressBMP 1 "cp1718t_media/person.bmp" "person1.bmp"
 --compressBMP 2 "cp1718t_media/person.bmp" "person2.bmp"
@@ -1085,6 +1085,203 @@ outlineQTree h = cataQTree (either f g) where
 \end{code}
 
 \subsection*{Problema 3}
+
+\begin{eqnarray*}
+	\start
+		|s . in = either (const 1) (succ . s)|
+	%
+	\just\equiv{ Identidade, Cancelamento-$\times$}
+		|s . in = either ((const 1) . id) (succ . p2 . (split g s))|
+	%
+	\just\equiv{ Absorção-+ (22) }
+		|s . in = either (const 1) (succ . p2) . (id + (split g s))|
+	%
+	\just\equiv{ Functor }
+		|s . in = either (const 1) (succ . p2) . F(split g s)|
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |Nat0|
+           \ar[d]_-{|s|}
+&
+    |1 + Nat0|
+           \ar[d]^{|F(split g s)|}
+           \ar[l]_-{|inNat|}
+\\
+     |Nat0|
+&
+     |1 + Nat0 * Nat0|
+           \ar[l]^-{|either (const 1) (succ . p2)|}
+}
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+	\start
+		|g . in = either (const 1) (mul . (split g s))|
+	%
+	\just\equiv{ Identidade }
+		|g . in = either ((const 1) . id) (mul . (split g s))|
+	%
+	\just\equiv{ Absorção-+ (22) }
+		|g . in = either (const 1) mul . (id + (split g s))|
+	%
+	\just\equiv{ Functor }
+		|g . in = either (const 1) mul . F(split g s)|
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |Nat0|
+           \ar[d]_-{|g|}
+&
+    |1 + Nat0|
+           \ar[d]^{|F(split g s)|}
+           \ar[l]_-{|inNat|}
+\\
+     |Nat0|
+&
+     |1 + Nat0 * Nat0|
+           \ar[l]^-{|either (const 1) mul|}
+}
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+	\start
+		        |lcbr(
+			g . in = either (const 1) mul . F(split g s)
+		)(
+			s . in = either (const 1) (succ . p2) . F(split g s)
+		)|
+	%
+	\just\equiv{ Fokkinga (50) }
+		|split g s = cataNat (split (either (const 1) mul) (either (const 1) (succ . p2)))|
+	%
+	\just\equiv{ Lei da Troca (28) }
+		|split g s = cataNat (either (split (const 1) (const 1)) (split mul (succ . p2)))|
+	%
+\end{eqnarray*}
+
+\begin{eqnarray*}
+	\start
+		|f k . in = either (const 1) (mul . split (f k) (l k))|
+	%
+	\just\equiv{ Identidade }
+		|f k . in = either ((const 1) . id) (mul . (split (f k) (l k)))|
+	%
+	\just\equiv{ Absorção-+ (22) }
+		|f k . in = either (const 1) mul . (id + (split (f k) (l k)))|
+	%
+	\just\equiv{ Functor }
+		|f k . in = either (const 1) mul . F(split (f k) (l k))|
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |Nat0|
+           \ar[d]_-{|f k|}
+&
+    |1 + Nat0|
+           \ar[d]^{|F(split (f k) (l k))|}
+           \ar[l]_-{|inNat|}
+\\
+     |Nat0|
+&
+     |1 + Nat0 * Nat0|
+           \ar[l]^-{|either (const 1) mul|}
+}
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+	\start
+		|l k . in = either (succ . k) (succ . l k)|
+	%
+	\just\equiv{ Identidade, Cancelamento-$\times$ }
+		|l k . in = either (succ . k . id) (succ . p2 . split (f k) (l k))|
+	%
+	\just\equiv{ Absorção-+ (22) }
+		|l k . in = either (succ . k) (succ . p2) . (id + split (f k) (l k))|
+	%
+	\just\equiv{ Functor }
+		|l k . in = either (succ . k) (succ . p2) . F(split (f k) (l k))|
+	%
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |Nat0|
+           \ar[d]_-{|l k|}
+&
+    |1 + Nat0|
+           \ar[d]^{|F(split (f k) (l k))|}
+           \ar[l]_-{|inNat|}
+\\
+     |Nat0|
+&
+     |1 + Nat0 * Nat0|
+           \ar[l]^-{|either (succ . k) (succ . p2)|}
+}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+	\start
+		        |lcbr(
+			f k . in = either (const 1) mul . F(split (f k) (l k))
+		)(
+			l k . in = either (succ . k) (succ . p2) . F(split (f k) (l k))
+		)|
+	%
+	\just\equiv{ Fokkinga (50) }
+		|split (f k) (l k) = cataNat (split (either (const 1) mul) (either (succ . k) (succ . p2)))|
+	%
+	\just\equiv{ Lei da Troca (28) }
+		|split (f k) (l k) = cataNat (either (split (const 1) (succ . k)) (split mul (succ . p2)))|
+	%
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+	\start
+		|split (split (f k) (l k)) (split g s)|
+	%
+	\just\equiv{ Banana-split (51) }
+		|cataNat (((either (split (const 1) (succ . k)) (split mul (succ . p2))) >< (either (split (const 1) (const 1)) (split mul (succ . p2)))) . (split (F p1) (F p2)))|
+	%
+	\just\equiv{ Absorção-$\times$ (11) }
+		|cataNat (split ((either (split (const 1) (succ . k)) (split mul (succ . p2))) . F p1) ((either (split (const 1) (const 1)) (split mul (succ . p2))) . F p2))|
+	%
+	\just\equiv{ Functor }
+		|cataNat (split ((either (split (const 1) (succ . k)) (split mul (succ . p2))) . (id + p1)) ((either (split (const 1) (const 1)) (split mul (succ . p2))) . (id + p2)))|
+	%
+	\just\equiv{ Absorção-+ (22) }
+		|cataNat (split (either (split (const 1) (succ . k)) (split mul (succ . p2) . p1)) (either (split (const 1) (const 1)) (split mul (succ . p2) . p2)))|
+	%
+	\just\equiv{ Fusão-$\times$ (9) }
+		|cataNat (split (either (split (const 1) (succ . k)) (split (mul . p1) (succ . p2 . p1))) (either (split (const 1) (const 1)) (split (mul . p2) (succ . p2 . p2))))|
+	%
+	\just\equiv{ Lei da troca (28) }
+		|cataNat (either (split (split (const 1) (succ . k)) (split (const 1) (const 1))) (split (split (mul . p1) (succ . p2 . p1)) (split (mul . p2) (succ .p2 .p2))))|
+	%
+\end{eqnarray*}
+
+\begin{eqnarray*}
+	\start
+		|for g i = cataNat(either (const i) g)|
+	%
+	\just\equiv
+		|(a, _, b, _) = cataNat(either (const (base k)) loop)|
+	%
+	\just\equiv
+			        |lcbr(
+			base k = split (split (const 1) (succ . k)) (split (const 1) (const 1))
+		)(
+			loop = split (split (mul . p1) (succ . p2 . p1)) (split (mul . p2) (succ .p2 .p2))
+		)|
+	%
+\end{eqnarray*}
 
 \begin{code}
 
@@ -1147,33 +1344,32 @@ scalePTree n (Comp s l r) = Comp (n * s) (scalePTree n l) (scalePTree n r)
 
 draw n = display window white (n!!0)
 
-drawPTree = singl . pictures . (map create) . drawPTree2 
-    where
-        create ((s, a),(x, y)) = translate x y $ rotate a $ rectangleUpperSolid s s
-        drawPTree2 (Unit s) = [split (split id (const 0.0)) (split (const 0.0) (const 0.0)) s]
-        drawPTree2 (Comp s l r) = (drawPTree2 (Unit s)) ++ left ++ right
-            where
-                left = map (f (-45)) (drawPTree2 l)
-                right = map (f 45) (drawPTree2 r)
-                f r = split (split s na) (split nx ny)
-                    where
-                        mulf = uncurry(*) -- mul não aceita floats
-                        addf = uncurry(+) -- add não aceita floats
-                        s = p1.p1 -- largura atual
-                        a = p2.p1 -- angulo atual
-                        x = p1.p2 -- coordenada x atual
-                        y = p2.p2 -- coordena y atual
-                        na = (+r).a  --novo angulo
-                        mx = (*((sqrt 2) / 2)).(*(signum r)).s
-                        my = (*(sqrt 2)).s
-                        tx = addf.split (mulf.split mx (cos.a)) (mulf.split my (sin.a)) -- tx = mx * cos(a) + my * sin(a)
-                        ty = addf.split (mulf.split (negate.mx) (sin.a)) (mulf.split my (cos.a)) -- ty = -mx * sin(a) + my * cos(a)
-                        nx = addf.split tx x -- nx = x + tx
-                        ny = addf.split ty y -- ny = y + ty
 
+
+
+--cataFTree :: (Either Square (Square, ([Picture], [Picture])) -> [Picture]) -> PTree -> [Picture]
+
+drawPTree = singl . pictures . cataFTree (either f g)
+        where f = singl . square 
+              g (s, (l, r)) = (f s) ++ conc (left l, right r)
+                where
+                left  = map (translate (-s/2) s . rotate (-45)) 
+                right = map (translate  (s/2) s . rotate   45 )
+
+
+                {-
+              g = conc split (singl . square . p1) (conc . (left >< right) . p2) 
+                where
+                left =  map (uncurry translate . (split (negate . (/2)) (id)) . rotate (-45)) 
+                right =  map (uncurry translate . (split (/2) (id)) . rotate 45) 
+                -}
+
+
+
+                
 
 main :: IO()
-main = draw.drawPTree.(scalePTree 20).generatePTree $ 3
+main = draw.drawPTree.(scalePTree 20).generatePTree $ 6
 --main = draw [pictures [translate 300 0 $ rotate (-45) $ square 200 , rotate (-45) $ translate 300 0 $ square 200]]
 
 \end{code}

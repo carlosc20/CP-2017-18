@@ -1044,6 +1044,9 @@ instance Functor QTree where
     fmap f = cataQTree ( inQTree . baseQTree f id )
 
 
+--id -|- (f >< (f >< (f >< f))) (outQTree a)
+
+
 rotateQTree = cataQTree $ either f g where
     f (k,(x,y)) = Cell k y x
     g (a,(b,(c,d))) = Block c a d b
@@ -1053,17 +1056,12 @@ scaleQTree n = cataQTree $ inQTree . ((id >< ((n*) >< (n*)) -|- id))
 invertQTree = fmap $ \(PixelRGBA8 r g b a) -> (PixelRGBA8 (255 - r) (255 - g) (255 - b) a)
 
 --2----------------------------------------------------------------------------------------------------
---Melhorar
 --compressQTree :: Int -> QTree a -> QTree a
 
 --cataNat g   = g . recNat (cataNat g) . outNat
 
-compress = cataQTree (either f g) where
-    f (k,(x,y)) = Cell k x y
-    g (Cell a xa ya, (Cell _ xb _, (Cell _ _ yc, _))) = Cell a (xa + xb) (ya + yc)
-    g (a,(b,(c,d))) = Block a b c d
 
-compressQTree n = (uncurry (cutTree)) . split ((+(-n)) . depthQTree) id
+compressQTree n = (uncurry (cutTree)) . split (subtract n . depthQTree) id
     where
         cutTree = cataNat $ either (const compress) recTree
             where
@@ -1147,29 +1145,12 @@ scalePTree n (Comp s l r) = Comp (n * s) (scalePTree n l) (scalePTree n r)
 -------------------------------------------------------------------------------------------------------
 --drawPTree :: PTree -> [Picture] cata e/ou ana
 
---drawPTree = cataFTree (either f g) where
---    f s = [makeSquare s]
---    g (s, (p1 ,p2)) = makeSquare s:(p1 ++ p2)
-
---makeSquare :: Square -> Picture
---makeSquare s = square1 (centerS s) s (rotateS s)
-
---square1 :: Point -> Square -> Bool -> Picture
---square1 (x,y) l True = translate x y $ rectangleSolid l l
---square1 (x,y) l False = rotate 45 $ translate x y $ rectangleSolid l l
-
---rotateS :: Square -> Bool
---rotateS _ = True
-
---centerS :: Square -> (Float, Float)
---centerS _ = (0,0)
-
 draw n = display window white (n!!0)
 
-drawPTree = cons.split (pictures.(map create).drawPTree2) nil
+drawPTree = singl . pictures . (map create) . drawPTree2 
     where
-        create ((s, a),(x, y)) = translate x y $ rotate a $ square s
-        drawPTree2 (Unit s) = [split (split id (const 0.0)) (split (const 0.0) (const 0.0)) $ s]
+        create ((s, a),(x, y)) = translate x y $ rotate a $ rectangleUpperSolid s s
+        drawPTree2 (Unit s) = [split (split id (const 0.0)) (split (const 0.0) (const 0.0)) s]
         drawPTree2 (Comp s l r) = (drawPTree2 (Unit s)) ++ left ++ right
             where
                 left = map (f (-45)) (drawPTree2 l)
@@ -1182,24 +1163,18 @@ drawPTree = cons.split (pictures.(map create).drawPTree2) nil
                         a = p2.p1 -- angulo atual
                         x = p1.p2 -- coordenada x atual
                         y = p2.p2 -- coordena y atual
-                        d = signum r -- esquerda / direita
-                        z = 2/(sqrt 2)
-                        na = (+r).a
-                        mx = (*z).(*d).((/2).s)
-                        my = (*z).s
+                        na = (+r).a  --novo angulo
+                        mx = (*((sqrt 2) / 2)).(*(signum r)).s
+                        my = (*(sqrt 2)).s
                         tx = addf.split (mulf.split mx (cos.a)) (mulf.split my (sin.a)) -- tx = mx * cos(a) + my * sin(a)
                         ty = addf.split (mulf.split (negate.mx) (sin.a)) (mulf.split my (cos.a)) -- ty = -mx * sin(a) + my * cos(a)
                         nx = addf.split tx x -- nx = x + tx
                         ny = addf.split ty y -- ny = y + ty
-{-
-drawSquare :: PTree -> Either [Picture] ([Picture], (PTree, PTree))
-drawSquare (Unit s) = Left [square1 (0,0) s True]
-drawSquare (Comp s t1 t2) = Right ([(square1 (0,0) s False)], (t1, t2))
-
-drawPTree = anaFTree drawSquare
--}
 
 
+main :: IO()
+main = draw.drawPTree.(scalePTree 20).generatePTree $ 3
+--main = draw [pictures [translate 300 0 $ rotate (-45) $ square 200 , rotate (-45) $ translate 300 0 $ square 200]]
 
 \end{code}
 

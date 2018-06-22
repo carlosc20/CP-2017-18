@@ -1088,6 +1088,203 @@ outlineQTree h = cataQTree (either f g) where
 
 \subsection*{Problema 3}
 
+\begin{eqnarray*}
+	\start
+		|s . in = either (const 1) (succ . s)|
+	%
+	\just\equiv{ Identidade, Cancelamento-$\times$}
+		|s . in = either ((const 1) . id) (succ . p2 . (split g s))|
+	%
+	\just\equiv{ Absorção-+ (22) }
+		|s . in = either (const 1) (succ . p2) . (id + (split g s))|
+	%
+	\just\equiv{ Functor }
+		|s . in = either (const 1) (succ . p2) . F(split g s)|
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |Nat0|
+           \ar[d]_-{|s|}
+&
+    |1 + Nat0|
+           \ar[d]^{|F(split g s)|}
+           \ar[l]_-{|inNat|}
+\\
+     |Nat0|
+&
+     |1 + Nat0 * Nat0|
+           \ar[l]^-{|either (const 1) (succ . p2)|}
+}
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+	\start
+		|g . in = either (const 1) (mul . (split g s))|
+	%
+	\just\equiv{ Identidade }
+		|g . in = either ((const 1) . id) (mul . (split g s))|
+	%
+	\just\equiv{ Absorção-+ (22) }
+		|g . in = either (const 1) mul . (id + (split g s))|
+	%
+	\just\equiv{ Functor }
+		|g . in = either (const 1) mul . F(split g s)|
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |Nat0|
+           \ar[d]_-{|g|}
+&
+    |1 + Nat0|
+           \ar[d]^{|F(split g s)|}
+           \ar[l]_-{|inNat|}
+\\
+     |Nat0|
+&
+     |1 + Nat0 * Nat0|
+           \ar[l]^-{|either (const 1) mul|}
+}
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+	\start
+		        |lcbr(
+			g . in = either (const 1) mul . F(split g s)
+		)(
+			s . in = either (const 1) (succ . p2) . F(split g s)
+		)|
+	%
+	\just\equiv{ Fokkinga (50) }
+		|split g s = cataNat (split (either (const 1) mul) (either (const 1) (succ . p2)))|
+	%
+	\just\equiv{ Lei da Troca (28) }
+		|split g s = cataNat (either (split (const 1) (const 1)) (split mul (succ . p2)))|
+	%
+\end{eqnarray*}
+
+\begin{eqnarray*}
+	\start
+		|f k . in = either (const 1) (mul . split (f k) (l k))|
+	%
+	\just\equiv{ Identidade }
+		|f k . in = either ((const 1) . id) (mul . (split (f k) (l k)))|
+	%
+	\just\equiv{ Absorção-+ (22) }
+		|f k . in = either (const 1) mul . (id + (split (f k) (l k)))|
+	%
+	\just\equiv{ Functor }
+		|f k . in = either (const 1) mul . F(split (f k) (l k))|
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |Nat0|
+           \ar[d]_-{|f k|}
+&
+    |1 + Nat0|
+           \ar[d]^{|F(split (f k) (l k))|}
+           \ar[l]_-{|inNat|}
+\\
+     |Nat0|
+&
+     |1 + Nat0 * Nat0|
+           \ar[l]^-{|either (const 1) mul|}
+}
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+	\start
+		|l k . in = either (succ . k) (succ . l k)|
+	%
+	\just\equiv{ Identidade, Cancelamento-$\times$ }
+		|l k . in = either (succ . k . id) (succ . p2 . split (f k) (l k))|
+	%
+	\just\equiv{ Absorção-+ (22) }
+		|l k . in = either (succ . k) (succ . p2) . (id + split (f k) (l k))|
+	%
+	\just\equiv{ Functor }
+		|l k . in = either (succ . k) (succ . p2) . F(split (f k) (l k))|
+	%
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |Nat0|
+           \ar[d]_-{|l k|}
+&
+    |1 + Nat0|
+           \ar[d]^{|F(split (f k) (l k))|}
+           \ar[l]_-{|inNat|}
+\\
+     |Nat0|
+&
+     |1 + Nat0 * Nat0|
+           \ar[l]^-{|either (succ . k) (succ . p2)|}
+}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+	\start
+		        |lcbr(
+			f k . in = either (const 1) mul . F(split (f k) (l k))
+		)(
+			l k . in = either (succ . k) (succ . p2) . F(split (f k) (l k))
+		)|
+	%
+	\just\equiv{ Fokkinga (50) }
+		|split (f k) (l k) = cataNat (split (either (const 1) mul) (either (succ . k) (succ . p2)))|
+	%
+	\just\equiv{ Lei da Troca (28) }
+		|split (f k) (l k) = cataNat (either (split (const 1) (succ . k)) (split mul (succ . p2)))|
+	%
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+	\start
+		|split (split (f k) (l k)) (split g s)|
+	%
+	\just\equiv{ Banana-split (51) }
+		|cataNat (((either (split (const 1) (succ . k)) (split mul (succ . p2))) >< (either (split (const 1) (const 1)) (split mul (succ . p2)))) . (split (F p1) (F p2)))|
+	%
+	\just\equiv{ Absorção-$\times$ (11) }
+		|cataNat (split ((either (split (const 1) (succ . k)) (split mul (succ . p2))) . F p1) ((either (split (const 1) (const 1)) (split mul (succ . p2))) . F p2))|
+	%
+	\just\equiv{ Functor }
+		|cataNat (split ((either (split (const 1) (succ . k)) (split mul (succ . p2))) . (id + p1)) ((either (split (const 1) (const 1)) (split mul (succ . p2))) . (id + p2)))|
+	%
+	\just\equiv{ Absorção-+ (22) }
+		|cataNat (split (either (split (const 1) (succ . k)) (split mul (succ . p2) . p1)) (either (split (const 1) (const 1)) (split mul (succ . p2) . p2)))|
+	%
+	\just\equiv{ Fusão-$\times$ (9) }
+		|cataNat (split (either (split (const 1) (succ . k)) (split (mul . p1) (succ . p2 . p1))) (either (split (const 1) (const 1)) (split (mul . p2) (succ . p2 . p2))))|
+	%
+	\just\equiv{ Lei da troca (28) }
+		|cataNat (either (split (split (const 1) (succ . k)) (split (const 1) (const 1))) (split (split (mul . p1) (succ . p2 . p1)) (split (mul . p2) (succ .p2 .p2))))|
+	%
+\end{eqnarray*}
+
+\begin{eqnarray*}
+	\start
+		|for g i = cataNat(either (const i) g)|
+	%
+	\just\equiv
+		|(a, _, b, _) = cataNat(either (const (base k)) loop)|
+	%
+	\just\equiv
+			        |lcbr(
+			base k = split (split (const 1) (succ . k)) (split (const 1) (const 1))
+		)(
+			loop = split (split (mul . p1) (succ . p2 . p1)) (split (mul . p2) (succ .p2 .p2))
+		)|
+	%
+\end{eqnarray*}
+
 \begin{code}
 
 --base k = split (split one (succ k)) (split one one)

@@ -1118,8 +1118,8 @@ outlineQTree h = cataQTree (either f g) where
 
 \begin{code}
 --Ainda não funciona, mas compila
-base k = (1, 1, k + 1, 1)
-loop = pack . split (split (succ.p1.p1) (mul.p1)) (split (succ.p1.p2) (mul.p2)) . unpack
+base k = (1, k + 1, 1, 1)
+loop = pack . (split (split (mul.p1) (add.(one><id).p1)) ((split (mul.p2) (add.(one><id).p2)))) . unpack
     where
         unpack (a, b, c, d) = ((a, b), (c, d))
         pack ((a, b), (c, d)) = (a, b, c, d)
@@ -1164,28 +1164,43 @@ instance Bifunctor FTree where
 --generatePTree :: Int -> PTree
 generatePTree = anaFTree f where
     f n = if (n == 0) then i1 1 else i2 (r, ((n-1), (n-1)))
-     where  r = (sqrt 2) ^ (fromIntegral n)
+     where  r = (sqrt 2) ^ (fromIntegral n) * 25
 
 
 --drawPTree :: PTree -> [Picture] cata e/ou ana
-drawPTree = cataFTree (either f g) where
-    f s = [makeSquare s]
-    g (s, (p1 ,p2)) = [makeSquare s] ++ p1 ++ p2
+--drawPTree = cataFTree (either f g) where
+--    f s = [makeSquare s]
+--    g (s, (p1 ,p2)) = makeSquare s:(p1 ++ p2)
 
-makeSquare :: Square -> Picture
-makeSquare s = square1 (centerS s) s (rotateS s)
+--makeSquare :: Square -> Picture
+--makeSquare s = square1 (centerS s) s (rotateS s)
 
-square1 :: Point -> Square -> Bool -> Picture
-square1 (x,y) l True = translate x y $ rectangleSolid l l
-square1 (x,y) l False = rotate 90 $ translate x y $ rectangleSolid l l
+--square1 :: Point -> Square -> Bool -> Picture
+--square1 (x,y) l True = translate x y $ rectangleSolid l l
+--square1 (x,y) l False = rotate 45 $ translate x y $ rectangleSolid l l
 
-rotateS :: Square -> Bool
-rotateS _ = True
+--rotateS :: Square -> Bool
+--rotateS _ = True
 
-centerS :: Square -> (Float, Float)
-centerS _ = (0,0)
+--centerS :: Square -> (Float, Float)
+--centerS _ = (0,0)
 
-
+drawPTree = (map create).drawPTree2
+    where
+        create ((s, a),(x, y)) = rotate a $ translate x y $ rectangleSolid s s
+        drawPTree2 (Unit s) = [split (split id (const 0.0)) (split (const 0.0) (const 0.0)) $ s]
+        drawPTree2 (Comp s l r) = (drawPTree2 (Unit s)) ++ left ++ right
+            where
+                left = map (f (-45)) (drawPTree2 l)
+                right = map (f 45) (drawPTree2 r)
+                f r = split (split s ((+r).a)) (split nx ny)
+                    where
+                        s = p1.p1
+                        a = p2.p1
+                        x = p1.p2
+                        y = p2.p2
+                        nx = (uncurry (+)).split ((uncurry (*)).(split ((uncurry (/)).(split s (const 2))) (cos.a))) y
+                        ny = (uncurry (+)).split ((uncurry (*)).(split s (cos.a))) y
 
 {-
 drawSquare :: PTree -> Either [Picture] ([Picture], (PTree, PTree))

@@ -9,8 +9,8 @@ bib:
 all: $(file).tex
 	lhs2TeX $(file).lhs > $(file).tex
 	pdflatex $(file).tex
-	#bibtex $(file)
-	#pdflatex $(file).tex
+	bibtex $(file)
+	pdflatex $(file).tex
 	#pdflatex $(file).tex
 
 # Automatically compile what is necessary, as many times as needed.

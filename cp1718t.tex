@@ -1336,7 +1336,7 @@ Na função \emph{allTransactions}, tal como é pedido no enunciado, usou-se um 
 \end{hscode}\resethooks
 
 
-(Doc do ledger)
+A função \emph{ledger} começa por criar um lista de \emph{(Entity, (Value, Entity))}, separa esses pares na forma de \emph{(Entity, Value)} e dá sort. Apos estes passos é criada uma lista de listas, onde as sublista contêm os pares com a mesma \emph{Entity}. Por último, as sublistas são substituidas por um par do tipo \emph{(Entity, Value)}, onde o \emph{Value} é a soma de todos os segundos elementos dos pares da sublista.
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -1455,7 +1455,7 @@ Na função \emph{rotateQTree} o catamorfismo recebe um \emph{Either}, onde o pr
 \end{hscode}\resethooks
 
 
-A função \emph{scaleQTree} aplica (id >< (n*) >< (n*)) ao primeiro elemento e \emph{id} ao segundo elemnto do \emph{Either} argumento, que em seguida são transformados para o tipo \emph{QTree}.
+A função \emph{scaleQTree} é um catamorfismo que aplica (id $\times$ (n*) $\times$ (n*)) ao primeiro elemento e \emph{id} ao segundo elemnto do \emph{Either} argumento, que em seguida são transformados para o tipo \emph{QTree}.
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -1463,7 +1463,6 @@ A função \emph{scaleQTree} aplica (id >< (n*) >< (n*)) ao primeiro elemento e 
 \>[B]{}\Varid{scaleQTree}\;\Varid{n}\mathrel{=}\Varid{cataQTree}\mathbin{\$}\Varid{inQTree}\comp ((\Varid{id}\times((\Varid{n}\mathbin{*})\times(\Varid{n}\mathbin{*}))+\Varid{id})){}\<[E]%
 \ColumnHook
 \end{hscode}\resethooks
-
 
 
 A \emph{invertQTree} é um função map que aplica a função lambda recebida como argumeto a todas as \emph{Cells}. A função lambda faz a subtração entre o numero 255 e os diferentes valores do tipo \emph{PixelRGBA8}, excepto o último que se refere à trasparencia.
@@ -1477,7 +1476,7 @@ A \emph{invertQTree} é um função map que aplica a função lambda recebida co
 
 
 
-(Doc)
+Na função \emph{compressQTree}, tal como é pedido no enunciado, usou-se um catamorfismo. Inicialmente, calcula-se a nova profundidade, diferença entre a profundidade da \emph{QTree} e o \emph{n} dado. Usando um for, percorre a \emph{QTree} até chegar à nova profundidade. Depois executa a função \emph{compress}. A função \emph{compress} percorre a \emph{QTree} até ser uma \emph{Cell}. Caso não o seja, procura no primeiro \emph{Block} da \emph{QTree}. Por fim, devolve a \emph{Cell} com a soma do seu tamanho e das células à sua volta.
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -1486,13 +1485,13 @@ A \emph{invertQTree} é um função map que aplica a função lambda recebida co
 \column{13}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{17}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
-\>[B]{}\Varid{compressQTree}\;\Varid{n}\mathrel{=}\uncurry{(\mathsf{for}\ \Varid{recTree}\ \Varid{compress})}\comp \conj{\Varid{subtract}\;\Varid{n}\comp \Varid{depthQTree}}{\Varid{id}}{}\<[E]%
+\>[B]{}\Varid{compressQTree}\;\Varid{n}\mathrel{=}\uncurry{(\mathsf{for}\ \Varid{recTree}\ \Varid{compress})}\comp \conj{\uncurry{\Varid{max}}\comp \conj{\Varid{subtract}\;\Varid{n}\comp \Varid{depthQTree}}{\underline{\mathrm{0}}}}{\Varid{id}}{}\<[E]%
 \\
 \>[B]{}\hsindent{5}{}\<[5]%
 \>[5]{}\mathbf{where}{}\<[E]%
 \\
 \>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\Varid{recTree}\;\Varid{f}\;\Varid{a}\mathrel{=}\Varid{inQTree}\mathbin{\$}\Varid{recQTree}\;\Varid{f}\;(\Varid{outQTree}\;\Varid{a}){}\<[E]%
+\>[9]{}\Varid{recTree}\;\Varid{f}\mathrel{=}\Varid{inQTree}\comp (\Varid{recQTree}\;\Varid{f})\comp \Varid{outQTree}{}\<[E]%
 \\
 \>[5]{}\hsindent{4}{}\<[9]%
 \>[9]{}\Varid{compress}\mathrel{=}\Varid{cataQTree}\;\alt{\Varid{f}}{\Varid{g}}{}\<[E]%
@@ -1776,12 +1775,32 @@ A função \emph{outlineQTree} transforma uma \emph{Cell} numa matrix de \emph{B
 \end{hscode}\resethooks
 
 
-(Doc)
+A função \emph{generatePTree} é um anamorfismo que cria uma árvore de folhas/nodos de tamanho$\sqrt{2}^n$, sendo n a profundidade da folha/nodo, logo as folhas terão sempre tamanho 1 (n = 0).
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{5}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{6}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{13}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{generatePTree}\mathrel{=}\Varid{anaFTree}\;\Varid{f}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{f}\;\Varid{n}\mathrel{=}\Varid{p2p}\;(i_2\;(\Varid{r},((\Varid{pred}\;\Varid{n}),(\Varid{pred}\;\Varid{n}))),i_1\;\mathrm{1})\;(\Varid{n}\equiv \mathrm{0}){}\<[E]%
+\\
+\>[5]{}\hsindent{1}{}\<[6]%
+\>[6]{}\mathbf{where}\;{}\<[13]%
+\>[13]{}\Varid{r}\mathrel{=}(\Varid{sqrt}\;\mathrm{2})\mathbin{\uparrow}(\Varid{fromIntegral}\;\Varid{n}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+A função \emph{drawPTree} converte uma árvore para uma Picture através da função auxiliar drawTree e depois recursivamente vai reduzindo á ordem da árvore por 1 e adicionando as Pictures convertidas à lista devolvida. Esta lista no final é invertida para ficar com a ordem correta.
+A função auxiliar \emph{drawPTree} . No final as Pictures são juntas numa única Picture.
+
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{9}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{13}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{17}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -1793,15 +1812,6 @@ A função \emph{outlineQTree} transforma uma \emph{Cell} numa matrix de \emph{B
 \column{49}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{68}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
-\>[B]{}\Varid{generatePTree}\mathrel{=}\Varid{anaFTree}\;\Varid{f}\;\mathbf{where}{}\<[E]%
-\\
-\>[B]{}\hsindent{5}{}\<[5]%
-\>[5]{}\Varid{f}\;\Varid{n}\mathrel{=}\Varid{p2p}\;(i_2\;(\Varid{r},((\Varid{pred}\;\Varid{n}),(\Varid{pred}\;\Varid{n}))),i_1\;\mathrm{1})\;(\Varid{n}\equiv \mathrm{0}){}\<[E]%
-\\
-\>[5]{}\hsindent{1}{}\<[6]%
-\>[6]{}\mathbf{where}\;{}\<[13]%
-\>[13]{}\Varid{r}\mathrel{=}(\Varid{sqrt}\;\mathrm{2})\mathbin{\uparrow}(\Varid{fromIntegral}\;\Varid{n}){}\<[E]%
-\\[\blanklineskip]%
 \>[B]{}\Varid{drawPTree}\mathrel{=}\Varid{cycle}\comp \Varid{reverse}\comp \Varid{aux}{}\<[E]%
 \\
 \>[B]{}\hsindent{5}{}\<[5]%
@@ -1848,20 +1858,16 @@ A função \emph{outlineQTree} transforma uma \emph{Cell} numa matrix de \emph{B
 \>[25]{}\Varid{right}\mathrel{=}\map \;(\Varid{translate}\;{}\<[49]%
 \>[49]{}(\Varid{s}\mathbin{/}\mathrm{2})\;\Varid{s}\comp \Varid{rotate}\;{}\<[68]%
 \>[68]{}\mathrm{45}){}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\Varid{scalePTree}\;\Varid{n}\;(\Conid{Unit}\;\Varid{s})\mathrel{=}\Conid{Unit}\;(\Varid{n}\mathbin{*}\Varid{s}){}\<[E]%
-\\
-\>[B]{}\Varid{scalePTree}\;\Varid{n}\;(\Conid{Comp}\;\Varid{s}\;\Varid{l}\;\Varid{r})\mathrel{=}\Conid{Comp}\;(\Varid{n}\mathbin{*}\Varid{s})\;(\Varid{scalePTree}\;\Varid{n}\;\Varid{l})\;(\Varid{scalePTree}\;\Varid{n}\;\Varid{r}){}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\Varid{draw}\;\Varid{n}\mathrel{=}\Varid{display}\;\Varid{window}\;\Varid{white}\;(\Varid{n}\mathbin{!!}\mathrm{0}){}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\Varid{main}\mathbin{::}\fun{IO}\;(){}\<[E]%
-\\
-\>[B]{}\Varid{main}\mathrel{=}\Varid{animatePTree}\;\mathrm{6}{}\<[E]%
 \ColumnHook
 \end{hscode}\resethooks
 
 \subsection*{Problema 5}
+
+O \emph{singletonbag} coloca num \emph{Bag} uma lista só com um par. Esse par é constituido pela variável passada à função e o número 1.
+
+O \emph{muB} retira do \emph{Bag}. Depois, multiplica o segundo elemento de cada par da lista por todos os segundos elementos de cada par dentro da lista, que está dentro do \emph{Bag} do primeiro elemento do par.
+
+O \emph{dist} retira do \emph{Bag} e, a cada elemento da lista, replica o valor à esquerda do par, o número de vezes igual ao segundo par. Depois junta as listas de listas numa única lista usando o \emph{concat}. Por fim, usa-se a função \emph{uniform} para converter a lista numa distribuição.
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%

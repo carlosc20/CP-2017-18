@@ -1000,7 +1000,7 @@ allTransactions = cataBlockchain $ either (p2 . p2) (conc . ((p2 . p2) >< id))
 \end{code}
 
 
-(Doc do ledger)
+A função \emph{ledger} começa por criar um lista de \emph{(Entity, (Value, Entity))}, separa esses pares na forma de \emph{(Entity, Value)} e dá sort. Apos estes passos é criada uma lista de listas, onde as sublista contêm os pares com a mesma \emph{Entity}. Por último, as sublistas são substituidas por um par do tipo \emph{(Entity, Value)}, onde o \emph{Value} é a soma de todos os segundos elementos dos pares da sublista.
 
 \begin{code}
 
@@ -1070,7 +1070,7 @@ rotateQTree = cataQTree $ either f g where
 \end{code}
 
 
-A função \emph{scaleQTree} é um catamorfismo que aplica (id >< (n*) >< (n*)) ao primeiro elemento e \emph{id} ao segundo elemnto do \emph{Either} argumento, que em seguida são transformados para o tipo \emph{QTree}.
+A função \emph{scaleQTree} é um catamorfismo que aplica (id $\times$ (n*) $\times$ (n*)) ao primeiro elemento e \emph{id} ao segundo elemnto do \emph{Either} argumento, que em seguida são transformados para o tipo \emph{QTree}.
 
 \begin{code}
 
@@ -1079,8 +1079,7 @@ scaleQTree n = cataQTree $ inQTree . ((id >< ((n*) >< (n*)) -|- id))
 \end{code}
 
 
-
-A \emph{invertQTree} usa um map que em todas as \emph{Cells} faz a subtração entre o numero 255 e os diferentes valores do tipo \emph{PixelRGBA8}, excepto o último que se refere à trasparencia.
+A \emph{invertQTree} é um função map que aplica a função lambda recebida como argumeto a todas as \emph{Cells}. A função lambda faz a subtração entre o numero 255 e os diferentes valores do tipo \emph{PixelRGBA8}, excepto o último que se refere à trasparencia.
 
 \begin{code}
 
@@ -1088,9 +1087,7 @@ invertQTree = fmap $ \(PixelRGBA8 r g b a) -> (PixelRGBA8 (255 - r) (255 - g) (2
 
 \end{code}
 
-
-
-Na função \emph{compressQTree}, tal como é pedido no enunciado, usou-se um catamorfismo. Inicialmente, calcula-se a nova profundidade, diferença entre a profundidade da \emph{QTree} e o \emph{n} dado. Usando um for, percorre a \emph{QTree} até chegar à nova profundidade. Depois executa a função \emph{compress}. A função \emph{compress} percorre a \emph{QTree} até ser uma \emph{Cell}. Caso não o seja, procura no primeiro \emph{Block} da \emph{QTree}. Por fim, devolve a \emph{Cell} com o seu tamanho e das células à sua volta.
+Na função \emph{compressQTree}, tal como é pedido no enunciado, usou-se um catamorfismo. Inicialmente, calcula-se a nova profundidade, diferença entre a profundidade da \emph{QTree} e o \emph{n} dado. Usando um for, percorre a \emph{QTree} até chegar à nova profundidade. Depois executa a função \emph{compress}. A função \emph{compress} percorre a \emph{QTree} até ser uma \emph{Cell}. Caso não o seja, procura no primeiro \emph{Block} da \emph{QTree}. Por fim, devolve a \emph{Cell} com a soma do seu tamanho e das células à sua volta.
 
 \begin{code}
 
@@ -1351,6 +1348,7 @@ instance Bifunctor FTree where
 
 \end{code}
 
+
 A função \emph{generatePTree} é um anamorfismo que cria uma árvore de folhas/nodos de tamanho$\sqrt{2}^n$, sendo n a profundidade da folha/nodo, logo as folhas terão sempre tamanho 1 (n = 0).
 
 \begin{code}
@@ -1386,8 +1384,6 @@ drawPTree = cycle.reverse.aux
 \end{code}
 
 \subsection*{Problema 5}
-
-
 
 O \emph{singletonbag} coloca num \emph{Bag} uma lista só com um par. Esse par é constituido pela variável passada à função e o número 1.
 

@@ -988,27 +988,42 @@ anaBlockchain f = inBlockchain . (recBlockchain (anaBlockchain f) ) . f
 
 hyloBlockchain f g = cataBlockchain f . anaBlockchain g
 
+\end{code}
+
+
+Na função \emph{allTransactions}, tal como é pedido no enunciado, usou-se um catamorfismo de forma a ter recursividade. A função que o catamorfismo recebe terá que ser um \emph{Either}, onde o primeiro argumento será para o \emph{Bc} e o segundo argumento será para o \emph{Bcs}. O primeiro argumento do \emph{Either} serve para receber o elemento \emph{Transactions} do \emph{Bc}, enquanto que o segundo argumento concatena um par onde o primeiro elemento é do tipo \emph{Transactions} do \emph{Block}, e o segundo é id para o \emph{Blockchain}  em \emph{Bcs}.
+
+\begin{code}
+
 allTransactions = cataBlockchain $ either (p2 . p2) (conc . ((p2 . p2) >< id))
+
+\end{code}
+
+
+(Doc do ledger)
+
+\begin{code}
 
 ledger = groupTransactions . groupBy (\(e1, _) (e2, _) -> e1 == e2) . sort . splitTransactions . allTransactions
     where
-        --splitTransactions [] = []
-        --splitTransactions ((e1, (v, e2)):t) = (e1, negate v) : (e2, v) : splitTransactions t
         splitTransactions = cataList $ either nil (cons . (split (split e1 v) (cons . split (split e2 (negate . v)) (p2))))
-        --splitTransactions = cataList $ inList baseList f g =
             where
                 e1 = p2 . p2 . p1
                 e2 = p1 . p1
                 v = p1 . p2 . p1
         groupTransactions = map (split (p1 . head) (sum . map p2)) 
 
+\end{code}
+
+
+A função \emph{isValidMagicNr} usa duas funções auxiliares, a \emph{getMagicNrs} que recebe um \emph{Blockchain} e devolve uma lista de \emph{MagicNo}, e a \emph{isSingle} que recebe uma lista de listas de \emph{MagicNo} e devolve \emph{True} se o tamanho de de todas as sublistas e \emph{False} se existir pelo menos uma das sublistas que o seu tamanho seja diferente de 1. A função \emph{isValidMagicNr} recebe um \emph{Blockchain}, cria uma lista com todos os \emph{MagicNo} do \emph{Blockchain}, ordena-a, e transforma-a numa lista com sublistas, onde essas sublistas contêm \emph{MagicNo} iguais e por fim verifica se cada uma das sublistas têm tamanho 1.
+
+\begin{code}
 
 isValidMagicNr = isSingle . group . sort . getMagicNrs
     where
         getMagicNrs = cataBlockchain $ either (singl . p1) (cons . (p1 >< id))
         isSingle = all ((1==) . length)
-
-
 
 \end{code}
 
@@ -1016,6 +1031,7 @@ isValidMagicNr = isSingle . group . sort . getMagicNrs
 \subsection*{Problema 2}
 
 \begin{code}
+
 inQTree = either (uncurry2 Cell) (uncurry3 Block)
             where uncurry3 f = \(a, (b, (c, d))) -> f a b c d
                   uncurry2 f = \(x, (y, z)) -> f x y z
@@ -1036,17 +1052,47 @@ hyloQTree a c = cataQTree a . anaQTree c
 instance Functor QTree where
     fmap f = cataQTree ( inQTree . baseQTree f id )
 
+\end{code}
+
+
+Na função \emph{rotateQTree} o catamorfismo recebe um \emph{Either}, onde o primeiro argumento é aplicado quando a \emph{QTree} argumento é uma \emph{Cell}e o segundo argumento quando a \emph{QTree} é um \emph{Block}. No caso de:
+  \begin{itemize}
+    \item Uma \emph{Cell} é invocada a função auxiliar \emph{f} que transforma um par do tipo \emph{(a,(x,y))} para \emph{Cell a x y};
+    \item Um \emph{Block} é invocada a função auxiliar \emph{g} que transforma um par do tipo \emph{(a,(b,(c,d)))} para \emph{Block c a d b} de forma a fazer a rotação;
+  \end{itemize}
+
+\begin{code}
 
 rotateQTree = cataQTree $ either f g where
     f (k,(x,y)) = Cell k y x
     g (a,(b,(c,d))) = Block c a d b
 
+\end{code}
+
+
+A função \emph{scaleQTree} aplica (id >< (n*) >< (n*)) ao primeiro elemento e \emph{id} ao segundo elemnto do \emph{Either} argumento, que em seguida são transformados para o tipo \emph{QTree}.
+
+\begin{code}
 
 scaleQTree n = cataQTree $ inQTree . ((id >< ((n*) >< (n*)) -|- id))
 
+\end{code}
+
+
+
+A \emph{invertQTree} é um função map que aplica a função lambda recebida como argumeto a todas as \emph{Cells}. A função lambda faz a subtração entre o numero 255 e os diferentes valores do tipo \emph{PixelRGBA8}, excepto o último que se refere à trasparencia.
+
+\begin{code}
 
 invertQTree = fmap $ \(PixelRGBA8 r g b a) -> (PixelRGBA8 (255 - r) (255 - g) (255 - b) a)
 
+\end{code}
+
+
+
+(Doc)
+
+\begin{code}
 
 compressQTree n = (uncurry (for recTree compress)) . split (subtract n . depthQTree) id
     where
@@ -1057,6 +1103,13 @@ compressQTree n = (uncurry (for recTree compress)) . split (subtract n . depthQT
                 g (Cell a xa ya, (Cell _ xb _, (Cell _ _ yc, Cell _ _ _))) = Cell a (xa + xb) (ya + yc)
                 g a = inQTree . i2 $ a
 
+\end{code}
+
+
+
+A função \emph{outlineQTree} transforma uma \emph{Cell} numa matrix de \emph{Bool} com o mesmo tamanho, onde as bordas dependem da função argumento e no interior é tudo \emph{False}. No caso do \emph{Block} são aplicadas operações de matrizes de forma a criar toda a matriz que representa a imagem.
+
+\begin{code}
 
 outlineQTree h = cataQTree (either f g) where
     f (k,(x,y)) = matrix y x (\(b,a) -> (p2p (False, (h k)) (b == y || b == 1 || a == x || a == 1)))
@@ -1265,7 +1318,6 @@ outlineQTree h = cataQTree (either f g) where
 
 \begin{code}
 
---base k = split (split one (succ k)) (split one one)
 base k = (1, succ k, 1, 1)
 loop = pack . split (split (mul.p1) (succ.p2.p1)) (split (mul.p2) (succ.p2.p2)) . unpack
     where
@@ -1278,57 +1330,35 @@ loop = pack . split (split (mul.p1) (succ.p2.p1)) (split (mul.p2) (succ.p2.p2)) 
 
 \begin{code}
 
-
---inFTree :: Either b (a, (FTree a b, FTree a b)) -> FTree a b
 inFTree = either Unit (uncurry2 Comp)
             where uncurry2 f = \(x, (y, z)) -> f x y z
 
---outFTree :: FTree a1 a2 -> Either a2 (a1, (FTree a1 a2, FTree a1 a2))
 outFTree (Unit c)       = i1 c
 outFTree (Comp a t1 t2) = i2 (a, (t1, t2))
 
---baseFTree :: (a1 -> b1) -> (a2 -> b2) -> (a3 -> d) -> Either a2 (a1, (a3, a3)) -> Either b2 (b1, (d, d))
 baseFTree f g h  = g -|- (f  >< (h >< h))
 
---recFTree :: (a -> d) -> Either b1 (b2, (a, a)) -> Either b1 (b2, (d, d))
 recFTree f = baseFTree id id f
 
---cataFTree :: (Either b1 (b2, (d, d)) -> d) -> FTree b2 b1 -> d
 cataFTree a = a . (recFTree (cataFTree a)) . outFTree
 
---anaFTree :: (a1 -> Either b (a2, (a1, a1))) -> a1 -> FTree a2 b
 anaFTree f = inFTree . (recFTree (anaFTree f) ) . f
 
---hyloFTree :: (Either b1 (b2, (c, c)) -> c) -> (a -> Either b1 (b2, (a, a))) -> a -> c
 hyloFTree a c = cataFTree a . anaFTree c
 
 instance Bifunctor FTree where
     bimap f g = cataFTree ( inFTree . baseFTree f g id )
 
+\end{code}
+
+
+(Doc)
+
+\begin{code}
+
 generatePTree = anaFTree f where
     f n = p2p (i2 (r, ((pred n), (pred n))), i1 1) (n == 0)
      where  r = (sqrt 2) ^ (fromIntegral n)
-
-
-
---countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
-
-
-
-
-
-
---cataFTree :: (Either Square (Square, (PTree, PTree)) -> PTree) -> PTree -> PTree
-{-
-                cataFTree $ either id g
-                    where g (s ,(Unit _,Unit _ = Unit s
-                          g (s, (l, r)) = Comp s l r
-
-
-                cutLeafs (Unit s) = Unit s
-                cutLeafs (Comp s (Unit _) (Unit _)) = Unit s
-                cutLeafs (Comp s l r) = Comp s (cutLeafs l) (cutLeafs r)
--}
 
 drawPTree = cycle.reverse.aux
     where
@@ -1345,20 +1375,6 @@ drawPTree = cycle.reverse.aux
                     where
                         left =  map (translate (-s/2) s . rotate (-45))
                         right = map (translate  (s/2) s . rotate   45 )
-
-                                
-
-
---cataFTree :: (Either Square (Square, ([Picture], [Picture])) -> [Picture]) -> PTree -> [Picture]
-{-
-drawPTree = singl . pictures . cataFTree (either f g)
-        where f = singl . square
-              g (s, (l, r)) = (f s) ++ conc (left l, right r)
-                where
-                left  = map (translate (-s/2) s . rotate (-45))
-                right = map (translate  (s/2) s . rotate   45 )
--}
-
 
                 
 scalePTree n (Unit s) = Unit (n * s)

@@ -1011,7 +1011,7 @@ ledger = groupTransactions . groupBy (\(e1, _) (e2, _) -> e1 == e2) . sort . spl
                 e1 = p2 . p2 . p1
                 e2 = p1 . p1
                 v = p1 . p2 . p1
-        groupTransactions = map (split (p1 . head) (sum . map p2)) 
+        groupTransactions = map (split (p1 . head) (sum . map p2))
 
 \end{code}
 
@@ -1090,13 +1090,13 @@ invertQTree = fmap $ \(PixelRGBA8 r g b a) -> (PixelRGBA8 (255 - r) (255 - g) (2
 
 
 
-(Doc)
+Na função \emph{compressQTree}, tal como é pedido no enunciado, usou-se um catamorfismo. Inicialmente, calcula-se a nova profundidade, diferença entre a profundidade da \emph{QTree} e o \emph{n} dado. Usando um for, percorre a \emph{QTree} até chegar à nova profundidade. Depois executa a função \emph{compress}. A função \emph{compress} percorre a \emph{QTree} até ser uma \emph{Cell}. Caso não o seja, procura no primeiro \emph{Block} da \emph{QTree}. Por fim, devolve a \emph{Cell} com o dobro do seu tamanho.
 
 \begin{code}
 
 compressQTree n = (uncurry (for recTree compress)) . split (subtract n . depthQTree) id
     where
-        recTree f a = inQTree $ recQTree f (outQTree a)
+        recTree f = inQTree.(recQTree f).outQTree
         compress = cataQTree (either f g)
             where
                 f = inQTree . i1
@@ -1368,7 +1368,7 @@ drawPTree = cycle.reverse.aux
             where
                 cutLeaves = cataFTree (either Unit g)
                      where g (s, ((Unit _), (Unit _))) = Unit s
-                           g (s, (l, r)) = Comp s l r 
+                           g (s, (l, r)) = Comp s l r
         drawStep = pictures . cataFTree (either f g)
             where
                 f = singl . square
@@ -1377,11 +1377,19 @@ drawPTree = cycle.reverse.aux
                         left =  map (translate (-s/2) s . rotate (-45))
                         right = map (translate  (s/2) s . rotate   45 )
 
-            
+
 
 \end{code}
 
 \subsection*{Problema 5}
+
+
+
+O \emph{singletonbag} coloca num \emph{Bag} uma lista só com um par. Esse par é constituido pela variável passada à função e o número 1.
+
+O \emph{muB} retira do \emph{Bag}. Depois, multiplica o segundo elemento de cada par da lista por todos os segundos elementos de cada par dentro da lista, que está dentro do \emph{Bag} do primeiro elemento do par.
+
+O \emph{dist} retira do \emph{Bag} e, a cada elemento da lista, replica o valor à esquerda do par, o número de vezes igual ao segundo par. Depois junta as listas de listas numa única lista usando o \emph{concat}. Por fim, usa-se a função \emph{uniform} para converter a lista numa distribuição.
 
 \begin{code}
 
@@ -1393,13 +1401,7 @@ muB =  B . aux . unB
             where
                 f n = map (id >< (*n))
 
-
 dist = uniform . concat . map (uncurry (flip replicate)) . unB
-
-
-
-
-
 
 \end{code}
 

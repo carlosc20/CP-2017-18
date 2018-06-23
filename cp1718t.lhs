@@ -1070,7 +1070,7 @@ rotateQTree = cataQTree $ either f g where
 \end{code}
 
 
-A função \emph{scaleQTree} aplica (id >< (n*) >< (n*)) ao primeiro elemento e \emph{id} ao segundo elemnto do \emph{Either} argumento, que em seguida são transformados para o tipo \emph{QTree}.
+A função \emph{scaleQTree} é um catamorfismo que aplica (id >< (n*) >< (n*)) ao primeiro elemento e \emph{id} ao segundo elemnto do \emph{Either} argumento, que em seguida são transformados para o tipo \emph{QTree}.
 
 \begin{code}
 
@@ -1080,7 +1080,7 @@ scaleQTree n = cataQTree $ inQTree . ((id >< ((n*) >< (n*)) -|- id))
 
 
 
-A \emph{invertQTree} é um função map que aplica a função lambda recebida como argumeto a todas as \emph{Cells}. A função lambda faz a subtração entre o numero 255 e os diferentes valores do tipo \emph{PixelRGBA8}, excepto o último que se refere à trasparencia.
+A \emph{invertQTree} usa um map que em todas as \emph{Cells} faz a subtração entre o numero 255 e os diferentes valores do tipo \emph{PixelRGBA8}, excepto o último que se refere à trasparencia.
 
 \begin{code}
 
@@ -1351,17 +1351,23 @@ instance Bifunctor FTree where
 
 \end{code}
 
-
-(Doc)
+A função \emph{generatePTree} é um anamorfismo que cria uma árvore de folhas/nodos de tamanho$\sqrt{2}^n$, sendo n a profundidade da folha/nodo, logo as folhas terão sempre tamanho 1 (n = 0).
 
 \begin{code}
-
 
 generatePTree = anaFTree f where
     f n = p2p (i2 (r, ((pred n), (pred n))), i1 1) (n == 0)
      where  r = (sqrt 2) ^ (fromIntegral n)
 
-drawPTree = cycle.reverse.aux
+\end{code}
+
+A função \emph{drawPTree} converte uma árvore para uma Picture através da função auxiliar drawTree e depois recursivamente vai reduzindo á ordem da árvore por 1 e adicionando as Pictures convertidas à lista devolvida. Esta lista no final é invertida para ficar com a ordem correta.
+A função auxiliar \emph{drawPTree} . No final as Pictures são juntas numa única Picture.
+
+
+\begin{code}
+
+drawPTree = cycle . reverse . aux
     where
         aux (Unit a) = singl $ drawStep (Unit a)
         aux a = (drawStep a) : aux (cutLeaves a)
@@ -1376,8 +1382,6 @@ drawPTree = cycle.reverse.aux
                     where
                         left =  map (translate (-s/2) s . rotate (-45))
                         right = map (translate  (s/2) s . rotate   45 )
-
-
 
 \end{code}
 

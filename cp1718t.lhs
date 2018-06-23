@@ -999,21 +999,13 @@ ledger = groupTransactions . groupBy (\(e1, _) (e2, _) -> e1 == e2) . sort . spl
                 e1 = p2 . p2 . p1
                 e2 = p1 . p1
                 v = p1 . p2 . p1
-        --groupTransactions [] = []
-        --groupTransactions (h:t) = (e, sum (snds h)):groupTransactions t
-        --    where
-        --        e = fst $ head h
-        --        snds [] = 0
-        --        snds ((a,b):t) = b
-        groupTransactions = (cataList $ either nil (cons . (split e (sum . snds) >< id)))
-            where
-                e = p1 . head
-                snds = cataList $ either nil (cons . (p2 >< id)) -- Retorna os segundos elementos de uma lista
+        groupTransactions = map (split (p1 . head) (sum . map p2)) 
+
 
 isValidMagicNr = isSingle . group . sort . getMagicNrs
     where
         getMagicNrs = cataBlockchain $ either (singl . p1) (cons . (p1 >< id))
-        isSingle = cataList $ either true (uncurry (&&) . (((1==) . length) >< id))
+        isSingle = all ((1==) . length)
 
 
 
@@ -1044,9 +1036,6 @@ instance Functor QTree where
     fmap f = cataQTree ( inQTree . baseQTree f id )
 
 
---id -|- (f >< (f >< (f >< f))) (outQTree a)
-
-
 rotateQTree = cataQTree $ either f g where
     f (k,(x,y)) = Cell k y x
     g (a,(b,(c,d))) = Block c a d b
@@ -1069,7 +1058,7 @@ compressQTree n = (uncurry (cutTree)) . split (subtract n . depthQTree) id
         compress = cataQTree (either f g)
             where
                 f = inQTree . i1
-                g (Cell a xa ya, (Cell _ xb _, (Cell _ _ yc, _))) = Cell a (xa + xb) (ya + yc)
+                g (Cell a xa ya, (Cell _ xb _, (Cell _ _ yc, Cell _ _ _))) = Cell a (xa + xb) (ya + yc)
                 g a = inQTree . i2 $ a
 
 --compressBMP 1 "cp1718t_media/person.bmp" "person1.bmp"
@@ -1353,10 +1342,8 @@ drawPTree = singl . pictures . cataFTree (either f g)
         where f = singl . square 
               g (s, (l, r)) = (f s) ++ conc (left l, right r)
                 where
-                left  = map (translate (-s/2) s . rotate (-45)) 
+                left  = map (translate (-s/2) s . rotate (-45))
                 right = map (translate  (s/2) s . rotate   45 )
-
-
                 {-
               g = conc split (singl . square . p1) (conc . (left >< right) . p2) 
                 where
@@ -1380,18 +1367,19 @@ main = draw.drawPTree.(scalePTree 20).generatePTree $ 6
 
 singletonbag = B . singl . (split id (const 1))
 
-muB =  B . aux . unBag
+muB =  B . aux . unB
     where
-        unBag (B a) = a
-        aux = cataList $ either nil (uncurry (++) . ((uncurry f . swap . unBag2) >< id))
+        aux = cataList $ either nil (conc . ((uncurry f . swap . (unB >< id)) >< id))
             where
-                unBag2 (B a, b) = (a, b)
-                f n = cataList $ either nil (cons . ((id >< (*n)) >< id))
+                f n = map (id >< (*n))
 
-dist = D . (uncurry aux) . (split (fromIntegral . length) id) . unBag
-    where
-        unBag (B a) = a
-        aux n = cataList $ either nil (cons . ((id >< (uncurry (/) . split fromIntegral (const n))) >< id))
+
+dist = uniform . concat . map (uncurry (flip replicate)) . unB
+
+
+
+
+
 
 \end{code}
 

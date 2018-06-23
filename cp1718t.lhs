@@ -1278,28 +1278,21 @@ loop = pack . split (split (mul.p1) (succ.p2.p1)) (split (mul.p2) (succ.p2.p2)) 
 
 \begin{code}
 
-
---inFTree :: Either b (a, (FTree a b, FTree a b)) -> FTree a b
 inFTree = either Unit (uncurry2 Comp)
             where uncurry2 f = \(x, (y, z)) -> f x y z
 
---outFTree :: FTree a1 a2 -> Either a2 (a1, (FTree a1 a2, FTree a1 a2))
 outFTree (Unit c)       = i1 c
 outFTree (Comp a t1 t2) = i2 (a, (t1, t2))
 
---baseFTree :: (a1 -> b1) -> (a2 -> b2) -> (a3 -> d) -> Either a2 (a1, (a3, a3)) -> Either b2 (b1, (d, d))
 baseFTree f g h  = g -|- (f  >< (h >< h))
-
---recFTree :: (a -> d) -> Either b1 (b2, (a, a)) -> Either b1 (b2, (d, d))
+))
 recFTree f = baseFTree id id f
 
---cataFTree :: (Either b1 (b2, (d, d)) -> d) -> FTree b2 b1 -> d
 cataFTree a = a . (recFTree (cataFTree a)) . outFTree
 
---anaFTree :: (a1 -> Either b (a2, (a1, a1))) -> a1 -> FTree a2 b
+
 anaFTree f = inFTree . (recFTree (anaFTree f) ) . f
 
---hyloFTree :: (Either b1 (b2, (c, c)) -> c) -> (a -> Either b1 (b2, (a, a))) -> a -> c
 hyloFTree a c = cataFTree a . anaFTree c
 
 instance Bifunctor FTree where
@@ -1310,25 +1303,6 @@ generatePTree = anaFTree f where
      where  r = (sqrt 2) ^ (fromIntegral n)
 
 
-
---countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
-
-
-
-
-
-
---cataFTree :: (Either Square (Square, (PTree, PTree)) -> PTree) -> PTree -> PTree
-{-
-                cataFTree $ either id g
-                    where g (s ,(Unit _,Unit _ = Unit s
-                          g (s, (l, r)) = Comp s l r
-
-
-                cutLeafs (Unit s) = Unit s
-                cutLeafs (Comp s (Unit _) (Unit _)) = Unit s
-                cutLeafs (Comp s l r) = Comp s (cutLeafs l) (cutLeafs r)
--}
 
 drawPTree = cycle.reverse.aux
     where
@@ -1347,17 +1321,6 @@ drawPTree = cycle.reverse.aux
                         right = map (translate  (s/2) s . rotate   45 )
 
                                 
-
-
---cataFTree :: (Either Square (Square, ([Picture], [Picture])) -> [Picture]) -> PTree -> [Picture]
-{-
-drawPTree = singl . pictures . cataFTree (either f g)
-        where f = singl . square
-              g (s, (l, r)) = (f s) ++ conc (left l, right r)
-                where
-                left  = map (translate (-s/2) s . rotate (-45))
-                right = map (translate  (s/2) s . rotate   45 )
--}
 
 
                 

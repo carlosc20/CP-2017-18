@@ -995,6 +995,7 @@ ledger = groupTransactions . groupBy (\(e1, _) (e2, _) -> e1 == e2) . sort . spl
         --splitTransactions [] = []
         --splitTransactions ((e1, (v, e2)):t) = (e1, negate v) : (e2, v) : splitTransactions t
         splitTransactions = cataList $ either nil (cons . (split (split e1 v) (cons . split (split e2 (negate . v)) (p2))))
+        --splitTransactions = cataList $ inList baseList f g =
             where
                 e1 = p2 . p2 . p1
                 e2 = p1 . p1
@@ -1040,31 +1041,21 @@ rotateQTree = cataQTree $ either f g where
     f (k,(x,y)) = Cell k y x
     g (a,(b,(c,d))) = Block c a d b
 
+
 scaleQTree n = cataQTree $ inQTree . ((id >< ((n*) >< (n*)) -|- id))
+
 
 invertQTree = fmap $ \(PixelRGBA8 r g b a) -> (PixelRGBA8 (255 - r) (255 - g) (255 - b) a)
 
---2----------------------------------------------------------------------------------------------------
---compressQTree :: Int -> QTree a -> QTree a
 
---cataNat g   = g . recNat (cataNat g) . outNat
-
-
-compressQTree n = (uncurry (cutTree)) . split (subtract n . depthQTree) id
+compressQTree n = (uncurry (for recTree compress)) . split (subtract n . depthQTree) id
     where
-        cutTree = cataNat $ either (const compress) recTree
-            where
-                recTree f a = inQTree $ recQTree f (outQTree a)
+        recTree f a = inQTree $ recQTree f (outQTree a)
         compress = cataQTree (either f g)
             where
                 f = inQTree . i1
                 g (Cell a xa ya, (Cell _ xb _, (Cell _ _ yc, Cell _ _ _))) = Cell a (xa + xb) (ya + yc)
                 g a = inQTree . i2 $ a
-
---compressBMP 1 "cp1718t_media/person.bmp" "person1.bmp"
---compressBMP 2 "cp1718t_media/person.bmp" "person2.bmp"
---compressBMP 3 "cp1718t_media/person.bmp" "person3.bmp"
---compressBMP 4 "cp1718t_media/person.bmp" "person4.bmp"
 
 
 outlineQTree h = cataQTree (either f g) where
@@ -1287,9 +1278,6 @@ loop = pack . split (split (mul.p1) (succ.p2.p1)) (split (mul.p2) (succ.p2.p2)) 
 
 \begin{code}
 
---data FTree a b = Unit b BARRA Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
---type PTree = FTree Square Square
---type Square = Float
 
 --inFTree :: Either b (a, (FTree a b, FTree a b)) -> FTree a b
 inFTree = either Unit (uncurry2 Comp)
@@ -1317,47 +1305,70 @@ hyloFTree a c = cataFTree a . anaFTree c
 instance Bifunctor FTree where
     bimap f g = cataFTree ( inFTree . baseFTree f g id )
 
--------------------------------------------------------------------------------------------------------
---generatePTree :: Int -> PTree
-generatePTree n = anaFTree f n where
-    f n = p2p (i2 (r, ((n-1), (n-1))), i1 1) (n == 0)
+generatePTree = anaFTree f where
+    f n = p2p (i2 (r, ((pred n), (pred n))), i1 1) (n == 0)
      where  r = (sqrt 2) ^ (fromIntegral n)
 
-scalePTree n (Unit s) = Unit (n * s)
-scalePTree n (Comp s l r) = Comp (n * s) (scalePTree n l) (scalePTree n r)
 
---invFTree = cataFTree (inFTree . (id + id >< swap))
+
 --countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))
--------------------------------------------------------------------------------------------------------
---drawPTree :: PTree -> [Picture] cata e/ou ana
-
-draw n = display window white (n!!0)
 
 
+
+
+
+
+--cataFTree :: (Either Square (Square, (PTree, PTree)) -> PTree) -> PTree -> PTree
+{-
+                cataFTree $ either id g
+                    where g (s ,(Unit _,Unit _ = Unit s
+                          g (s, (l, r)) = Comp s l r
+
+
+                cutLeafs (Unit s) = Unit s
+                cutLeafs (Comp s (Unit _) (Unit _)) = Unit s
+                cutLeafs (Comp s l r) = Comp s (cutLeafs l) (cutLeafs r)
+-}
+
+drawPTree = cycle.reverse.aux
+    where
+        aux (Unit a) = singl $ drawStep (Unit a)
+        aux a = (drawStep a) : aux (cutLeaves a)
+            where
+                cutLeaves = cataFTree (either Unit g)
+                     where g (s, ((Unit _), (Unit _))) = Unit s
+                           g (s, (l, r)) = Comp s l r 
+        drawStep = pictures . cataFTree (either f g)
+            where
+                f = singl . square
+                g (s, (l, r)) = (f s) ++ conc (left l, right r)
+                    where
+                        left =  map (translate (-s/2) s . rotate (-45))
+                        right = map (translate  (s/2) s . rotate   45 )
+
+                                
 
 
 --cataFTree :: (Either Square (Square, ([Picture], [Picture])) -> [Picture]) -> PTree -> [Picture]
-
+{-
 drawPTree = singl . pictures . cataFTree (either f g)
-        where f = singl . square 
+        where f = singl . square
               g (s, (l, r)) = (f s) ++ conc (left l, right r)
                 where
                 left  = map (translate (-s/2) s . rotate (-45))
                 right = map (translate  (s/2) s . rotate   45 )
-                {-
-              g = conc split (singl . square . p1) (conc . (left >< right) . p2) 
-                where
-                left =  map (uncurry translate . (split (negate . (/2)) (id)) . rotate (-45)) 
-                right =  map (uncurry translate . (split (/2) (id)) . rotate 45) 
-                -}
-
+-}
 
 
                 
+scalePTree n (Unit s) = Unit (n * s)
+scalePTree n (Comp s l r) = Comp (n * s) (scalePTree n l) (scalePTree n r)
+
+draw n = display window white (n!!0)
 
 main :: IO()
-main = draw.drawPTree.(scalePTree 20).generatePTree $ 6
---main = draw [pictures [translate 300 0 $ rotate (-45) $ square 200 , rotate (-45) $ translate 300 0 $ square 200]]
+main = animatePTree 6
+
 
 \end{code}
 

@@ -891,7 +891,7 @@ e
 \\[\blanklineskip]%
 \>[B]{}\Varid{s}\;\mathrm{0}\mathrel{=}\mathrm{1}{}\<[E]%
 \\
-\>[B]{}\Varid{s}\;(\Varid{d}\mathbin{+}\mathrm{1})\mathrel{=}\Varid{s}\;\Varid{n}\mathbin{+}\mathrm{1}{}\<[E]%
+\>[B]{}\Varid{s}\;(\Varid{d}\mathbin{+}\mathrm{1})\mathrel{=}\Varid{s}\;\Varid{d}\mathbin{+}\mathrm{1}{}\<[E]%
 \ColumnHook
 \end{hscode}\resethooks
 A partir daqui alguém derivou a seguinte implementação:
@@ -912,7 +912,7 @@ Verificação que \ensuremath{\Big(\vcenter{\xymatrix@R=1pt{\Varid{n}\\\Varid{k}
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
-\>[B]{}\Varid{prop3}\;\Varid{n}\;\Varid{k}\mathrel{=}\Big(\vcenter{\xymatrix@R=1pt{\Varid{n}\\\Varid{k}}}\Big)\equiv {\Varid{n}!}\mathbin{/}({\Varid{k}!}\mathbin{*}{(\Varid{n}\mathbin{-}\Varid{k})!}){}\<[E]%
+\>[B]{}\Varid{prop3}\;(\Conid{NonNegative}\;\Varid{n})\;(\Conid{NonNegative}\;\Varid{k})\mathrel{=}\Varid{k}\leq \Varid{n}\Rightarrow\Big(\vcenter{\xymatrix@R=1pt{\Varid{n}\\\Varid{k}}}\Big)\equiv {\Varid{n}!}\mathbin{/}({\Varid{k}!}\mathbin{*}{(\Varid{n}\mathbin{-}\Varid{k})!}){}\<[E]%
 \ColumnHook
 \end{hscode}\resethooks
 \end{propriedade}
@@ -1304,10 +1304,6 @@ outras funções auxiliares que sejam necessárias.
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{13}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{17}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{20}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{23}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -1326,23 +1322,33 @@ outras funções auxiliares que sejam necessárias.
 \>[B]{}\Varid{anaBlockchain}\;\Varid{f}\mathrel{=}\Varid{inBlockchain}\comp (\Varid{recBlockchain}\;(\Varid{anaBlockchain}\;\Varid{f}))\comp \Varid{f}{}\<[E]%
 \\[\blanklineskip]%
 \>[B]{}\Varid{hyloBlockchain}\;\Varid{f}\;\Varid{g}\mathrel{=}\Varid{cataBlockchain}\;\Varid{f}\comp \Varid{anaBlockchain}\;\Varid{g}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment allTransactions (Bc (_, (_, t))) = t}{}\<[E]%
-\\
-\>[B]{}\mbox{\onelinecomment allTransactions (Bcs ((_, (_, t)), b)) = t ++ allTransactions b}{}\<[E]%
-\\
-\>[B]{}\Varid{allTransactions}\mathrel{=}\Varid{cataBlockchain}\mathbin{\$}\alt{\p2\comp \p2}{\uncurry{(\plus )}\comp \conj{\p2\comp \p2\comp \p1}{\p2}}{}\<[E]%
-\\[\blanklineskip]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+Na função \emph{allTransactions}, tal como é pedido no enunciado, usou-se um catamorfismo de forma a ter recursividade. A função que o catamorfismo recebe terá que ser um \emph{Either}, onde o primeiro argumento será para o \emph{Bc} e o segundo argumento será para o \emph{Bcs}. O primeiro argumento do \emph{Either} serve para receber o elemento \emph{Transactions} do \emph{Bc}, enquanto que o segundo argumento concatena um par onde o primeiro elemento é do tipo \emph{Transactions} do \emph{Block}, e o segundo é id para o \emph{Blockchain}  em \emph{Bcs}.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{allTransactions}\mathrel{=}\Varid{cataBlockchain}\mathbin{\$}\alt{\p2\comp \p2}{\mathsf{conc}\comp ((\p2\comp \p2)\times\Varid{id})}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+(Doc do ledger)
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{13}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{17}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[B]{}\Varid{ledger}\mathrel{=}\Varid{groupTransactions}\comp \Varid{groupBy}\;(\lambda (e_1 ,\anonymous )\;(e_2 ,\anonymous )\to e_1 \equiv e_2 )\comp \Varid{sort}\comp \Varid{splitTransactions}\comp \Varid{allTransactions}{}\<[E]%
 \\
 \>[B]{}\hsindent{5}{}\<[5]%
 \>[5]{}\mathbf{where}{}\<[E]%
-\\
-\>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\mbox{\onelinecomment splitTransactions [] = []}{}\<[E]%
-\\
-\>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\mbox{\onelinecomment splitTransactions ((e1, (v, e2)):t) = (e1, negate v) : (e2, v) : splitTransactions t}{}\<[E]%
 \\
 \>[5]{}\hsindent{4}{}\<[9]%
 \>[9]{}\Varid{splitTransactions}\mathrel{=}\Varid{cataList}\mathbin{\$}\alt{\Varid{nil}}{\Varid{cons}\comp \conj{\conj{e_1 }{\Varid{v}}}{\Varid{cons}\comp \conj{\conj{e_2 }{\Varid{negate}\comp \Varid{v}}}{\p2}}}{}\<[E]%
@@ -1360,57 +1366,28 @@ outras funções auxiliares que sejam necessárias.
 \>[17]{}\Varid{v}\mathrel{=}\p1\comp \p2\comp \p1{}\<[E]%
 \\
 \>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\mbox{\onelinecomment groupTransactions [] = []}{}\<[E]%
-\\
-\>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\mbox{\onelinecomment groupTransactions (h:t) = (e, sum (snds h)):groupTransactions t}{}\<[E]%
-\\
-\>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\mbox{\onelinecomment     where}{}\<[E]%
-\\
-\>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\mbox{\onelinecomment         e = fst $ head h}{}\<[E]%
-\\
-\>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\mbox{\onelinecomment         snds [] = 0}{}\<[E]%
-\\
-\>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\mbox{\onelinecomment         snds ((a,b):t) = b}{}\<[E]%
-\\
-\>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\Varid{groupTransactions}\mathrel{=}(\Varid{cataList}\mathbin{\$}\alt{\Varid{nil}}{\Varid{cons}\comp (\conj{\Varid{e}}{\Varid{sum}\comp \Varid{snds}}\times\Varid{id})}){}\<[E]%
-\\
-\>[9]{}\hsindent{4}{}\<[13]%
-\>[13]{}\mathbf{where}{}\<[E]%
-\\
-\>[13]{}\hsindent{4}{}\<[17]%
-\>[17]{}\Varid{e}\mathrel{=}\p1\comp \Varid{head}{}\<[E]%
-\\
-\>[13]{}\hsindent{4}{}\<[17]%
-\>[17]{}\Varid{snds}\mathrel{=}\Varid{cataList}\mathbin{\$}\alt{\Varid{nil}}{\Varid{cons}\comp (\p2\times\Varid{id})}\mbox{\onelinecomment  Retorna os segundos elementos de uma lista}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\Varid{isValidMagicNr}\mathrel{=}\Varid{isSingle}\comp \Varid{group}\comp \Varid{sort}\comp \Varid{getMagicNos}{}\<[E]%
+\>[9]{}\Varid{groupTransactions}\mathrel{=}\map \;\conj{\p1\comp \Varid{head}}{\Varid{sum}\comp \map \;\p2}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+A função \emph{isValidMagicNr} usa duas funções auxiliares, a \emph{getMagicNrs} que recebe um \emph{Blockchain} e devolve uma lista de \emph{MagicNo}, e a \emph{isSingle} que recebe uma lista de listas de \emph{MagicNo} e devolve \emph{True} se o tamanho de de todas as sublistas e \emph{False} se existir pelo menos uma das sublistas que o seu tamanho seja diferente de 1. A função \emph{isValidMagicNr} recebe um \emph{Blockchain}, cria uma lista com todos os \emph{MagicNo} do \emph{Blockchain}, ordena-a, e transforma-a numa lista com sublistas, onde essas sublistas contêm \emph{MagicNo} iguais e por fim verifica se cada uma das sublistas têm tamanho 1.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{isValidMagicNr}\mathrel{=}\Varid{isSingle}\comp \Varid{group}\comp \Varid{sort}\comp \Varid{getMagicNrs}{}\<[E]%
 \\
 \>[B]{}\hsindent{5}{}\<[5]%
 \>[5]{}\mathbf{where}{}\<[E]%
 \\
 \>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\mbox{\onelinecomment getMagicNos (Bc (n, _)) = [n]}{}\<[E]%
+\>[9]{}\Varid{getMagicNrs}\mathrel{=}\Varid{cataBlockchain}\mathbin{\$}\alt{\Varid{singl}\comp \p1}{\Varid{cons}\comp (\p1\times\Varid{id})}{}\<[E]%
 \\
 \>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\mbox{\onelinecomment getMagicNos (Bcs ((n,_),b)) = n:getMagicNos b}{}\<[E]%
-\\
-\>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\Varid{getMagicNos}\mathrel{=}\Varid{cataBlockchain}\mathbin{\$}\alt{\Varid{cons}\comp \conj{\p1}{\Varid{nil}}}{\Varid{cons}\comp (\p1\times\Varid{id})}{}\<[E]%
-\\
-\>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\mbox{\onelinecomment isSingle [] = True}{}\<[E]%
-\\
-\>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\mbox{\onelinecomment isSingle (h:t) = (length h == 1) && isSingle t}{}\<[E]%
-\\
-\>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\Varid{isSingle}\mathrel{=}\Varid{cataList}\mathbin{\$}\alt{\underline{\Conid{True}}}{\uncurry{(\mathrel{\wedge})}\comp ((\uncurry{(\equiv )}\comp \conj{\length }{\underline{\mathrm{1}}})\times\Varid{id})}{}\<[E]%
+\>[9]{}\Varid{isSingle}\mathrel{=}\Varid{all}\;((\mathrm{1}\equiv )\comp \length ){}\<[E]%
 \ColumnHook
 \end{hscode}\resethooks
 
@@ -1425,8 +1402,6 @@ outras funções auxiliares que sejam necessárias.
 \column{19}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{30}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
-\>[B]{}\mbox{\onelinecomment inQTree :: Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a))) -> QTree a}{}\<[E]%
-\\
 \>[B]{}\Varid{inQTree}\mathrel{=}\alt{\Varid{uncurry2}\;\Conid{Cell}}{\Varid{uncurry3}\;\Conid{Block}}{}\<[E]%
 \\
 \>[B]{}\hsindent{13}{}\<[13]%
@@ -1435,240 +1410,74 @@ outras funções auxiliares que sejam necessárias.
 \>[13]{}\hsindent{6}{}\<[19]%
 \>[19]{}\Varid{uncurry2}\;\Varid{f}\mathrel{=}\lambda (\Varid{x},(\Varid{y},\Varid{z}))\to \Varid{f}\;\Varid{x}\;\Varid{y}\;\Varid{z}{}\<[E]%
 \\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment outQTree :: QTree a -> Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a)))}{}\<[E]%
-\\
 \>[B]{}\Varid{outQTree}\;(\Conid{Cell}\;\Varid{a}\;\Varid{x}\;\Varid{y}){}\<[30]%
 \>[30]{}\mathrel{=}i_1\;(\Varid{a},(\Varid{x},\Varid{y})){}\<[E]%
 \\
 \>[B]{}\Varid{outQTree}\;(\Conid{Block}\;\Varid{t1}\;\Varid{t2}\;\Varid{t3}\;\Varid{t4})\mathrel{=}i_2\;(\Varid{t1},(\Varid{t2},(\Varid{t3},\Varid{t4}))){}\<[E]%
 \\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment baseQTree :: (a1 -> b) -> (a2 -> d1) -> Either (a1, d2) (a2, (a2, (a2, a2))) -> Either (b, d2) (d1, (d1, (d1, d1)))}{}\<[E]%
-\\
 \>[B]{}\Varid{baseQTree}\;\Varid{f}\;\Varid{g}{}\<[16]%
 \>[16]{}\mathrel{=}(\Varid{f}\times\Varid{id})+(\Varid{g}\times(\Varid{g}\times(\Varid{g}\times\Varid{g}))){}\<[E]%
 \\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment recQTree :: (a -> d1) -> Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (d1, (d1, (d1, d1)))}{}\<[E]%
-\\
 \>[B]{}\Varid{recQTree}\;\Varid{f}\mathrel{=}\Varid{baseQTree}\;\Varid{id}\;\Varid{f}{}\<[E]%
 \\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment cataQTree :: (Either (b, (Int, Int)) (d, (d, (d, d))) -> d) -> QTree b -> d}{}\<[E]%
-\\
 \>[B]{}\Varid{cataQTree}\;\Varid{a}\mathrel{=}\Varid{a}\comp (\Varid{recQTree}\;(\Varid{cataQTree}\;\Varid{a}))\comp \Varid{outQTree}{}\<[E]%
 \\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment anaQTree :: (a1 -> Either (a2, (Int, Int)) (a1, (a1, (a1, a1)))) -> a1 -> QTree a2}{}\<[E]%
-\\
 \>[B]{}\Varid{anaQTree}\;\Varid{f}\mathrel{=}\Varid{inQTree}\comp (\Varid{recQTree}\;(\Varid{anaQTree}\;\Varid{f}))\comp \Varid{f}{}\<[E]%
 \\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment hyloQTree :: (Either (b, (Int, Int)) (c, (c, (c, c))) -> c) -> (a -> Either (b, (Int, Int)) (a, (a, (a, a)))) -> a -> c}{}\<[E]%
-\\
 \>[B]{}\Varid{hyloQTree}\;\Varid{a}\;\Varid{c}\mathrel{=}\Varid{cataQTree}\;\Varid{a}\comp \Varid{anaQTree}\;\Varid{c}{}\<[E]%
 \\[\blanklineskip]%
 \>[B]{}\mathbf{instance}\;\Conid{Functor}\;\Conid{QTree}\;\mathbf{where}{}\<[E]%
 \\
 \>[B]{}\hsindent{5}{}\<[5]%
 \>[5]{}\mathsf{fmap}\;\Varid{f}\mathrel{=}\Varid{cataQTree}\;(\Varid{inQTree}\comp \Varid{baseQTree}\;\Varid{f}\;\Varid{id}){}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment 1}{}\<[E]%
-\\
-\>[B]{}\mbox{\onelinecomment rotateQTree :: QTree a -> QTree a}{}\<[E]%
-\\
-\>[B]{}\Varid{rotateQTree}\mathrel{=}\Varid{cataQTree}\;\alt{\Varid{f}}{\Varid{g}}\;\mathbf{where}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+Na função \emph{rotateQTree} o catamorfismo recebe um \emph{Either}, onde o primeiro argumento é aplicado quando a \emph{QTree} argumento é uma \emph{Cell}e o segundo argumento quando a \emph{QTree} é um \emph{Block}. No caso de:
+  \begin{itemize}
+    \item Uma \emph{Cell} é invocada a função auxiliar \emph{f} que transforma um par do tipo \emph{(a,(x,y))} para \emph{Cell a x y};
+    \item Um \emph{Block} é invocada a função auxiliar \emph{g} que transforma um par do tipo \emph{(a,(b,(c,d)))} para \emph{Block c a d b} de forma a fazer a rotação;
+  \end{itemize}
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{rotateQTree}\mathrel{=}\Varid{cataQTree}\mathbin{\$}\alt{\Varid{f}}{\Varid{g}}\;\mathbf{where}{}\<[E]%
 \\
 \>[B]{}\hsindent{5}{}\<[5]%
 \>[5]{}\Varid{f}\;(\Varid{k},(\Varid{x},\Varid{y}))\mathrel{=}\Conid{Cell}\;\Varid{k}\;\Varid{y}\;\Varid{x}{}\<[E]%
 \\
 \>[B]{}\hsindent{5}{}\<[5]%
 \>[5]{}\Varid{g}\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d})))\mathrel{=}\Conid{Block}\;\Varid{c}\;\Varid{a}\;\Varid{d}\;\Varid{b}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment scaleQTree :: Int -> QTree a -> QTree a}{}\<[E]%
-\\
-\>[B]{}\Varid{scaleQTree}\;\Varid{n}\mathrel{=}\Varid{cataQTree}\;\alt{\Varid{f}}{\Varid{g}}\;\mathbf{where}{}\<[E]%
-\\
-\>[B]{}\hsindent{5}{}\<[5]%
-\>[5]{}\Varid{f}\;(\Varid{k},(\Varid{x},\Varid{y}))\mathrel{=}\Conid{Cell}\;\Varid{k}\;(\Varid{x}\mathbin{*}\Varid{n})\;(\Varid{y}\mathbin{*}\Varid{n}){}\<[E]%
-\\
-\>[B]{}\hsindent{5}{}\<[5]%
-\>[5]{}\Varid{g}\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d})))\mathrel{=}\Conid{Block}\;\Varid{a}\;\Varid{b}\;\Varid{c}\;\Varid{d}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment invertQTree :: QTree PixelRGBA8 -> QTree PixelRGBA8}{}\<[E]%
-\\
-\>[B]{}\Varid{invertQTree}\mathrel{=}\Varid{cataQTree}\;\alt{\Varid{f}}{\Varid{g}}\;\mathbf{where}{}\<[E]%
-\\
-\>[B]{}\hsindent{5}{}\<[5]%
-\>[5]{}\Varid{f}\;((\Conid{PixelRGBA8}\;\Varid{r}\;\Varid{g}\;\Varid{b}\;\Varid{a}),(\Varid{x},\Varid{y}))\mathrel{=}\Conid{Cell}\;(\Conid{PixelRGBA8}\;(\mathrm{255}\mathbin{-}\Varid{r})\;(\mathrm{255}\mathbin{-}\Varid{g})\;(\mathrm{255}\mathbin{-}\Varid{b})\;\Varid{a})\;\Varid{x}\;\Varid{y}{}\<[E]%
-\\
-\>[B]{}\hsindent{5}{}\<[5]%
-\>[5]{}\Varid{g}\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d})))\mathrel{=}\Conid{Block}\;\Varid{a}\;\Varid{b}\;\Varid{c}\;\Varid{d}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment 2     NAO FUNCIONA usar o n}{}\<[E]%
-\\
-\>[B]{}\mbox{\onelinecomment compressQTree :: Int -> QTree a -> QTree a}{}\<[E]%
-\\
-\>[B]{}\Varid{compressQTree}\;\Varid{n}\mathrel{=}\Varid{cataQTree}\;\alt{\Varid{f}}{\Varid{g}}\;\mathbf{where}{}\<[E]%
-\\
-\>[B]{}\hsindent{5}{}\<[5]%
-\>[5]{}\Varid{f}\;(\Varid{k},(\Varid{x},\Varid{y}))\mathrel{=}\Conid{Cell}\;\Varid{k}\;\Varid{x}\;\Varid{y}{}\<[E]%
-\\
-\>[B]{}\hsindent{5}{}\<[5]%
-\>[5]{}\Varid{g}\;(\Conid{Cell}\;\Varid{a}\;\Varid{xa}\;\Varid{ya},(\Conid{Cell}\;\Varid{b}\;\Varid{xb}\;\Varid{yb},(\Conid{Cell}\;\Varid{c}\;\Varid{xc}\;\Varid{yc},\Conid{Cell}\;\Varid{d}\;\Varid{xd}\;\Varid{yd})))\mathrel{=}\Conid{Cell}\;\Varid{a}\;(\Varid{xa}\mathbin{+}\Varid{xb}\mathbin{+}\Varid{xc}\mathbin{+}\Varid{xd})\;(\Varid{ya}\mathbin{+}\Varid{yb}\mathbin{+}\Varid{yc}\mathbin{+}\Varid{yd}){}\<[E]%
-\\
-\>[B]{}\hsindent{5}{}\<[5]%
-\>[5]{}\Varid{g}\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d})))\mathrel{=}\Conid{Block}\;\Varid{a}\;\Varid{b}\;\Varid{c}\;\Varid{d}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment compressBMP 1 "cp1718t_media/person.bmp" "person1.bmp"}{}\<[E]%
-\\
-\>[B]{}\mbox{\onelinecomment compressBMP 2 "cp1718t_media/person.bmp" "person2.bmp"}{}\<[E]%
-\\
-\>[B]{}\mbox{\onelinecomment compressBMP 3 "cp1718t_media/person.bmp" "person3.bmp"}{}\<[E]%
-\\
-\>[B]{}\mbox{\onelinecomment compressBMP 4 "cp1718t_media/person.bmp" "person4.bmp"}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment 3      }{}\<[E]%
-\\
-\>[B]{}\mbox{\onelinecomment outlineQTree :: (a -> Bool ) -> QTree a -> Matrix Bool}{}\<[E]%
-\\
-\>[B]{}\Varid{outlineQTree}\;\Varid{h}\mathrel{=}\Varid{cataQTree}\;\alt{\Varid{f}}{\Varid{g}}\;\mathbf{where}{}\<[E]%
-\\
-\>[B]{}\hsindent{5}{}\<[5]%
-\>[5]{}\Varid{f}\;(\Varid{k},(\Varid{x},\Varid{y}))\mathrel{=}matrix\;\Varid{y}\;\Varid{x}\;\underline{(\Varid{h}\;\Varid{k})}{}\<[E]%
-\\
-\>[B]{}\hsindent{5}{}\<[5]%
-\>[5]{}\Varid{g}\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d})))\mathrel{=}(\Varid{a}{\,\updownarrow\,}\Varid{b}){\,\leftrightarrow\,}(\Varid{c}{\,\updownarrow\,}\Varid{d}){}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment  <(AQUI COLOCA-SE UMA BARRA VERTICAL)> junta matrizes horizontalmente}{}\<[E]%
-\\
-\>[B]{}\mbox{\onelinecomment  <-> junta matrizes verticalmente}{}\<[E]%
-\\
-\>[B]{}\mbox{\onelinecomment outlineBMP "cp1718t_media/person.bmp" "personOut1.bmp"}{}\<[E]%
-\\
-\>[B]{}\mbox{\onelinecomment addOutlineBMP "cp1718t_media/person.bmp" "personOut2.bmp"}{}\<[E]%
-\\
-\>[B]{}\mbox{\onelinecomment nao funciona o teste2a}{}\<[E]%
 \ColumnHook
 \end{hscode}\resethooks
 
-\subsection*{Problema 3}
+
+A função \emph{scaleQTree} aplica (id >< (n*) >< (n*)) ao primeiro elemento e \emph{id} ao segundo elemnto do \emph{Either} argumento, que em seguida são transformados para o tipo \emph{QTree}.
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
-\>[B]{}\Varid{base}\mathrel{=}\bot {}\<[E]%
-\\
-\>[B]{}\Varid{loop}\mathrel{=}\bot {}\<[E]%
+\>[B]{}\Varid{scaleQTree}\;\Varid{n}\mathrel{=}\Varid{cataQTree}\mathbin{\$}\Varid{inQTree}\comp ((\Varid{id}\times((\Varid{n}\mathbin{*})\times(\Varid{n}\mathbin{*}))+\Varid{id})){}\<[E]%
 \ColumnHook
 \end{hscode}\resethooks
 
-\subsection*{Problema 4}
+
+
+A \emph{invertQTree} é um função map que aplica a função lambda recebida como argumeto a todas as \emph{Cells}. A função lambda faz a subtração entre o numero 255 e os diferentes valores do tipo \emph{PixelRGBA8}, excepto o último que se refere à trasparencia.
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{6}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{13}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{18}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{25}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{30}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
-\>[B]{}\mbox{\onelinecomment data FTree a b = Unit b (AQUI COLOCA-SE UMA BARRA VERTICAL) Comp a (FTree a b) (FTree a b) deriving (Eq,Show)}{}\<[E]%
-\\
-\>[B]{}\mbox{\onelinecomment type PTree = FTree Square Square}{}\<[E]%
-\\
-\>[B]{}\mbox{\onelinecomment type Square = Float}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment inFTree :: Either b (a, (FTree a b, FTree a b)) -> FTree a b}{}\<[E]%
-\\
-\>[B]{}\Varid{inFTree}\mathrel{=}\alt{\Conid{Unit}}{\Varid{uncurry2}\;\Conid{Comp}}{}\<[E]%
-\\
-\>[B]{}\hsindent{13}{}\<[13]%
-\>[13]{}\mathbf{where}\;\Varid{uncurry2}\;\Varid{f}\mathrel{=}\lambda (\Varid{x},(\Varid{y},\Varid{z}))\to \Varid{f}\;\Varid{x}\;\Varid{y}\;\Varid{z}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment outFTree :: FTree a1 a2 -> Either a2 (a1, (FTree a1 a2, FTree a1 a2))}{}\<[E]%
-\\
-\>[B]{}\Varid{outFTree}\;(\Conid{Unit}\;\Varid{c}){}\<[25]%
-\>[25]{}\mathrel{=}i_1\;\Varid{c}{}\<[E]%
-\\
-\>[B]{}\Varid{outFTree}\;(\Conid{Comp}\;\Varid{a}\;\Varid{t1}\;\Varid{t2})\mathrel{=}i_2\;(\Varid{a},(\Varid{t1},\Varid{t2})){}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment baseFTree :: (a1 -> b1) -> (a2 -> b2) -> (a3 -> d) -> Either a2 (a1, (a3, a3)) -> Either b2 (b1, (d, d))}{}\<[E]%
-\\
-\>[B]{}\Varid{baseFTree}\;\Varid{f}\;\Varid{g}\;\Varid{h}{}\<[18]%
-\>[18]{}\mathrel{=}\Varid{g}+(\Varid{f}{}\<[30]%
-\>[30]{}\times(\Varid{h}\times\Varid{h})){}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment recFTree :: (a -> d) -> Either b1 (b2, (a, a)) -> Either b1 (b2, (d, d))}{}\<[E]%
-\\
-\>[B]{}\Varid{recFTree}\;\Varid{f}\mathrel{=}\Varid{baseFTree}\;\Varid{id}\;\Varid{id}\;\Varid{f}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment cataFTree :: (Either b1 (b2, (d, d)) -> d) -> FTree b2 b1 -> d}{}\<[E]%
-\\
-\>[B]{}\Varid{cataFTree}\;\Varid{a}\mathrel{=}\Varid{a}\comp (\Varid{recFTree}\;(\Varid{cataFTree}\;\Varid{a}))\comp \Varid{outFTree}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment anaFTree :: (a1 -> Either b (a2, (a1, a1))) -> a1 -> FTree a2 b}{}\<[E]%
-\\
-\>[B]{}\Varid{anaFTree}\;\Varid{f}\mathrel{=}\Varid{inFTree}\comp (\Varid{recFTree}\;(\Varid{anaFTree}\;\Varid{f}))\comp \Varid{f}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment hyloFTree :: (Either b1 (b2, (c, c)) -> c) -> (a -> Either b1 (b2, (a, a))) -> a -> c}{}\<[E]%
-\\
-\>[B]{}\Varid{hyloFTree}\;\Varid{a}\;\Varid{c}\mathrel{=}\Varid{cataFTree}\;\Varid{a}\comp \Varid{anaFTree}\;\Varid{c}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mathbf{instance}\;\Conid{Bifunctor}\;\Conid{FTree}\;\mathbf{where}{}\<[E]%
-\\
-\>[B]{}\hsindent{5}{}\<[5]%
-\>[5]{}\Varid{bimap}\;\Varid{f}\;\Varid{g}\mathrel{=}\Varid{cataFTree}\;(\Varid{inFTree}\comp \Varid{baseFTree}\;\Varid{f}\;\Varid{g}\;\Varid{id}){}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment invFTree = cataFTree (inFTree . (id -(AQUI COLOCA-SE UMA BARRA VERTICAL)- id >< swap))}{}\<[E]%
-\\
-\>[B]{}\mbox{\onelinecomment countFTree = cataFTree (either (const 1) (succ . (uncurry (+)) . p2))}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment generatePTree :: Int -> PTree  }{}\<[E]%
-\\
-\>[B]{}\Varid{generatePTree}\mathrel{=}\Varid{anaFTree}\;\Varid{f}\;\mathbf{where}{}\<[E]%
-\\
-\>[B]{}\hsindent{5}{}\<[5]%
-\>[5]{}\Varid{f}\;\Varid{n}\mathrel{=}\mathbf{if}\;(\Varid{n}\equiv \mathrm{0})\;\mathbf{then}\;i_1\;\mathrm{1}\;\mathbf{else}\;i_2\;(\Varid{r},((\Varid{n}\mathbin{-}\mathrm{1}),(\Varid{n}\mathbin{-}\mathrm{1}))){}\<[E]%
-\\
-\>[5]{}\hsindent{1}{}\<[6]%
-\>[6]{}\mathbf{where}\;{}\<[13]%
-\>[13]{}\Varid{r}\mathrel{=}(\Varid{sqrt}\;\mathrm{2})\mathbin{\uparrow}(\Varid{fromIntegral}\;\Varid{n}){}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment drawPTree :: PTree -> [Picture] cata e/ou ana}{}\<[E]%
-\\
-\>[B]{}\Varid{drawPTree}\mathrel{=}\Varid{cataFTree}\;\alt{\Varid{f}}{\Varid{g}}\;\mathbf{where}{}\<[E]%
-\\
-\>[B]{}\hsindent{5}{}\<[5]%
-\>[5]{}\Varid{f}\;\Varid{s}\mathrel{=}[\mskip1.5mu \Varid{makeSquare}\;\Varid{s}\mskip1.5mu]{}\<[E]%
-\\
-\>[B]{}\hsindent{5}{}\<[5]%
-\>[5]{}\Varid{g}\;(\Varid{s},(\p1,\p2))\mathrel{=}[\mskip1.5mu \Varid{makeSquare}\;\Varid{s}\mskip1.5mu]\plus \p1\plus \p2{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\Varid{makeSquare}\mathbin{::}\Conid{Square}\to \Conid{Picture}{}\<[E]%
-\\
-\>[B]{}\Varid{makeSquare}\;\Varid{s}\mathrel{=}\Varid{square1}\;(\Varid{centerS}\;\Varid{s})\;\Varid{s}\;(\Varid{rotateS}\;\Varid{s}){}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\Varid{square1}\mathbin{::}\Conid{Point}\to \Conid{Square}\to \Conid{Bool}\to \Conid{Picture}{}\<[E]%
-\\
-\>[B]{}\Varid{square1}\;(\Varid{x},\Varid{y})\;\Varid{l}\;\Conid{True}\mathrel{=}\Varid{translate}\;\Varid{x}\;\Varid{y}\mathbin{\$}\Varid{rectangleSolid}\;\Varid{l}\;\Varid{l}{}\<[E]%
-\\
-\>[B]{}\Varid{square1}\;(\Varid{x},\Varid{y})\;\Varid{l}\;\Conid{False}\mathrel{=}\Varid{rotate}\;\mathrm{90}\mathbin{\$}\Varid{translate}\;\Varid{x}\;\Varid{y}\mathbin{\$}\Varid{rectangleSolid}\;\Varid{l}\;\Varid{l}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\Varid{rotateS}\mathbin{::}\Conid{Square}\to \Conid{Bool}{}\<[E]%
-\\
-\>[B]{}\Varid{rotateS}\;\anonymous \mathrel{=}\Conid{True}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\Varid{centerS}\mathbin{::}\Conid{Square}\to (\Conid{Float},\Conid{Float}){}\<[E]%
-\\
-\>[B]{}\Varid{centerS}\;\anonymous \mathrel{=}(\mathrm{0},\mathrm{0}){}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\commentbegin 
-drawSquare :: PTree -> Either [Picture] ([Picture], (PTree, PTree))
-drawSquare (Unit s) = Left [square1 (0,0) s True]
-drawSquare (Comp s t1 t2) = Right ([(square1 (0,0) s False)], (t1, t2)) 
-
-drawPTree = anaFTree drawSquare \commentend}{}\<[E]%
+\>[B]{}\Varid{invertQTree}\mathrel{=}\mathsf{fmap}\mathbin{\$}\lambda (\Conid{PixelRGBA8}\;\Varid{r}\;\Varid{g}\;\Varid{b}\;\Varid{a})\to (\Conid{PixelRGBA8}\;(\mathrm{255}\mathbin{-}\Varid{r})\;(\mathrm{255}\mathbin{-}\Varid{g})\;(\mathrm{255}\mathbin{-}\Varid{b})\;\Varid{a}){}\<[E]%
 \ColumnHook
 \end{hscode}\resethooks
 
-\subsection*{Problema 5}
+
+
+(Doc)
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -1677,46 +1486,409 @@ drawPTree = anaFTree drawSquare \commentend}{}\<[E]%
 \column{13}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{17}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
-\>[B]{}\mbox{\commentbegin 
-singletonbag = B . groupBag . groupBy (\(e1, _) (e2, _) -> e1 == e2) . sort . cons . split (split id (const 1)) nil
-    where
-        groupBag = (cataList $ either nil (cons . (split e (sum . snds) >< id)))
-            where
-                e = p1 . head
-                snds = cataList $ either nil (cons . (p2 >< id)) -- Retorna os segundos elementos de uma lista \commentend}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\Varid{singletonbag}\mathrel{=}\mathit B\comp \Varid{cons}\comp \conj{\conj{\Varid{id}}{\underline{\mathrm{1}}}}{\Varid{nil}}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mu \mathrel{=}\mathit B\comp \Varid{aux}\comp \Varid{unBag}{}\<[E]%
+\>[B]{}\Varid{compressQTree}\;\Varid{n}\mathrel{=}\uncurry{(\mathsf{for}\ \Varid{recTree}\ \Varid{compress})}\comp \conj{\Varid{subtract}\;\Varid{n}\comp \Varid{depthQTree}}{\Varid{id}}{}\<[E]%
 \\
 \>[B]{}\hsindent{5}{}\<[5]%
 \>[5]{}\mathbf{where}{}\<[E]%
 \\
 \>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\Varid{unBag}\;(\mathit B\;\Varid{a})\mathrel{=}\Varid{a}{}\<[E]%
+\>[9]{}\Varid{recTree}\;\Varid{f}\;\Varid{a}\mathrel{=}\Varid{inQTree}\mathbin{\$}\Varid{recQTree}\;\Varid{f}\;(\Varid{outQTree}\;\Varid{a}){}\<[E]%
 \\
 \>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\Varid{aux}\mathrel{=}\Varid{cataList}\mathbin{\$}\alt{\Varid{nil}}{\uncurry{(\plus )}\comp ((\uncurry{\Varid{f}}\comp \Varid{swap}\comp \Varid{unBag2})\times\Varid{id})}{}\<[E]%
+\>[9]{}\Varid{compress}\mathrel{=}\Varid{cataQTree}\;\alt{\Varid{f}}{\Varid{g}}{}\<[E]%
 \\
 \>[9]{}\hsindent{4}{}\<[13]%
 \>[13]{}\mathbf{where}{}\<[E]%
 \\
 \>[13]{}\hsindent{4}{}\<[17]%
-\>[17]{}\Varid{unBag2}\;(\mathit B\;\Varid{a},\Varid{b})\mathrel{=}(\Varid{a},\Varid{b}){}\<[E]%
+\>[17]{}\Varid{f}\mathrel{=}\Varid{inQTree}\comp i_1{}\<[E]%
 \\
 \>[13]{}\hsindent{4}{}\<[17]%
-\>[17]{}\Varid{f}\;\Varid{n}\mathrel{=}\Varid{cataList}\mathbin{\$}\alt{\Varid{nil}}{\Varid{cons}\comp ((\Varid{id}\times(\mathbin{*}\Varid{n}))\times\Varid{id})}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\Varid{dist}\mathrel{=}\Conid{D}\comp \uncurry{\Varid{aux}}\comp \conj{\Varid{fromIntegral}\comp \length }{\Varid{id}}\comp \Varid{unBag}{}\<[E]%
+\>[17]{}\Varid{g}\;(\Conid{Cell}\;\Varid{a}\;\Varid{xa}\;\Varid{ya},(\Conid{Cell}\;\anonymous \;\Varid{xb}\;\anonymous ,(\Conid{Cell}\;\anonymous \;\anonymous \;\Varid{yc},\Conid{Cell}\;\anonymous \;\anonymous \;\anonymous )))\mathrel{=}\Conid{Cell}\;\Varid{a}\;(\Varid{xa}\mathbin{+}\Varid{xb})\;(\Varid{ya}\mathbin{+}\Varid{yc}){}\<[E]%
+\\
+\>[13]{}\hsindent{4}{}\<[17]%
+\>[17]{}\Varid{g}\;\Varid{a}\mathrel{=}\Varid{inQTree}\comp i_2\mathbin{\$}\Varid{a}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+
+A função \emph{outlineQTree} transforma uma \emph{Cell} numa matrix de \emph{Bool} com o mesmo tamanho, onde as bordas dependem da função argumento e no interior é tudo \emph{False}. No caso do \emph{Block} são aplicadas operações de matrizes de forma a criar toda a matriz que representa a imagem.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{outlineQTree}\;\Varid{h}\mathrel{=}\Varid{cataQTree}\;\alt{\Varid{f}}{\Varid{g}}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{f}\;(\Varid{k},(\Varid{x},\Varid{y}))\mathrel{=}matrix\;\Varid{y}\;\Varid{x}\;(\lambda (\Varid{b},\Varid{a})\to (\Varid{p2p}\;(\Conid{False},(\Varid{h}\;\Varid{k}))\;(\Varid{b}\equiv \Varid{y}\mathrel{\vee}\Varid{b}\equiv \mathrm{1}\mathrel{\vee}\Varid{a}\equiv \Varid{x}\mathrel{\vee}\Varid{a}\equiv \mathrm{1}))){}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{g}\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d})))\mathrel{=}(\Varid{a}{\,\updownarrow\,}\Varid{b}){\,\leftrightarrow\,}(\Varid{c}{\,\updownarrow\,}\Varid{d}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\subsection*{Problema 3}
+
+\begin{eqnarray*}
+	\start
+		\ensuremath{\Varid{s}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}}{\succ \comp \Varid{s}}}
+	%
+	\just\equiv{ Identidade, Cancelamento-$\times$}
+		\ensuremath{\Varid{s}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}\comp \Varid{id}}{\succ \comp \p2\comp \conj{\Varid{g}}{\Varid{s}}}}
+	%
+	\just\equiv{ Absorção-+ (22) }
+		\ensuremath{\Varid{s}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}}{\succ \comp \p2}\comp (\Varid{id}\mathbin{+}\conj{\Varid{g}}{\Varid{s}})}
+	%
+	\just\equiv{ Functor }
+		\ensuremath{\Varid{s}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}}{\succ \comp \p2}\comp \Conid{F}\;\conj{\Varid{g}}{\Varid{s}}}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\N_0}
+           \ar[d]_-{\ensuremath{\Varid{s}}}
+&
+    \ensuremath{\mathrm{1}\mathbin{+}\N_0}
+           \ar[d]^{\ensuremath{\Conid{F}\;\conj{\Varid{g}}{\Varid{s}}}}
+           \ar[l]_-{\ensuremath{\mathsf{in}}}
+\\
+     \ensuremath{\N_0}
+&
+     \ensuremath{\mathrm{1}\mathbin{+}\N_0\mathbin{*}\N_0}
+           \ar[l]^-{\ensuremath{\alt{\underline{\mathrm{1}}}{\succ \comp \p2}}}
+}
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+	\start
+		\ensuremath{\Varid{g}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}}{\Varid{mul}\comp \conj{\Varid{g}}{\Varid{s}}}}
+	%
+	\just\equiv{ Identidade }
+		\ensuremath{\Varid{g}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}\comp \Varid{id}}{\Varid{mul}\comp \conj{\Varid{g}}{\Varid{s}}}}
+	%
+	\just\equiv{ Absorção-+ (22) }
+		\ensuremath{\Varid{g}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}}{\Varid{mul}}\comp (\Varid{id}\mathbin{+}\conj{\Varid{g}}{\Varid{s}})}
+	%
+	\just\equiv{ Functor }
+		\ensuremath{\Varid{g}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}}{\Varid{mul}}\comp \Conid{F}\;\conj{\Varid{g}}{\Varid{s}}}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\N_0}
+           \ar[d]_-{\ensuremath{\Varid{g}}}
+&
+    \ensuremath{\mathrm{1}\mathbin{+}\N_0}
+           \ar[d]^{\ensuremath{\Conid{F}\;\conj{\Varid{g}}{\Varid{s}}}}
+           \ar[l]_-{\ensuremath{\mathsf{in}}}
+\\
+     \ensuremath{\N_0}
+&
+     \ensuremath{\mathrm{1}\mathbin{+}\N_0\mathbin{*}\N_0}
+           \ar[l]^-{\ensuremath{\alt{\underline{\mathrm{1}}}{\Varid{mul}}}}
+}
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+	\start
+		        \ensuremath{\begin{lcbr}\Varid{g}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}}{\Varid{mul}}\comp \Conid{F}\;\conj{\Varid{g}}{\Varid{s}}\\\Varid{s}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}}{\succ \comp \p2}\comp \Conid{F}\;\conj{\Varid{g}}{\Varid{s}}\end{lcbr}}
+	%
+	\just\equiv{ Fokkinga (50) }
+		\ensuremath{\conj{\Varid{g}}{\Varid{s}}\mathrel{=}\cata{\conj{\alt{\underline{\mathrm{1}}}{\Varid{mul}}}{\alt{\underline{\mathrm{1}}}{\succ \comp \p2}}}}
+	%
+	\just\equiv{ Lei da Troca (28) }
+		\ensuremath{\conj{\Varid{g}}{\Varid{s}}\mathrel{=}\cata{\alt{\conj{\underline{\mathrm{1}}}{\underline{\mathrm{1}}}}{\conj{\Varid{mul}}{\succ \comp \p2}}}}
+	%
+\end{eqnarray*}
+
+\begin{eqnarray*}
+	\start
+		\ensuremath{\Varid{f}\;\Varid{k}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}}{\Varid{mul}\comp \conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}}}
+	%
+	\just\equiv{ Identidade }
+		\ensuremath{\Varid{f}\;\Varid{k}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}\comp \Varid{id}}{\Varid{mul}\comp \conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}}}
+	%
+	\just\equiv{ Absorção-+ (22) }
+		\ensuremath{\Varid{f}\;\Varid{k}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}}{\Varid{mul}}\comp (\Varid{id}\mathbin{+}\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}})}
+	%
+	\just\equiv{ Functor }
+		\ensuremath{\Varid{f}\;\Varid{k}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}}{\Varid{mul}}\comp \Conid{F}\;\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\N_0}
+           \ar[d]_-{\ensuremath{\Varid{f}\;\Varid{k}}}
+&
+    \ensuremath{\mathrm{1}\mathbin{+}\N_0}
+           \ar[d]^{\ensuremath{\Conid{F}\;\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}}}
+           \ar[l]_-{\ensuremath{\mathsf{in}}}
+\\
+     \ensuremath{\N_0}
+&
+     \ensuremath{\mathrm{1}\mathbin{+}\N_0\mathbin{*}\N_0}
+           \ar[l]^-{\ensuremath{\alt{\underline{\mathrm{1}}}{\Varid{mul}}}}
+}
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+	\start
+		\ensuremath{\Varid{l}\;\Varid{k}\comp \mathbf{in}\mathrel{=}\alt{\succ \comp \Varid{k}}{\succ \comp \Varid{l}\;\Varid{k}}}
+	%
+	\just\equiv{ Identidade, Cancelamento-$\times$ }
+		\ensuremath{\Varid{l}\;\Varid{k}\comp \mathbf{in}\mathrel{=}\alt{\succ \comp \Varid{k}\comp \Varid{id}}{\succ \comp \p2\comp \conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}}}
+	%
+	\just\equiv{ Absorção-+ (22) }
+		\ensuremath{\Varid{l}\;\Varid{k}\comp \mathbf{in}\mathrel{=}\alt{\succ \comp \Varid{k}}{\succ \comp \p2}\comp (\Varid{id}\mathbin{+}\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}})}
+	%
+	\just\equiv{ Functor }
+		\ensuremath{\Varid{l}\;\Varid{k}\comp \mathbf{in}\mathrel{=}\alt{\succ \comp \Varid{k}}{\succ \comp \p2}\comp \Conid{F}\;\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}}
+	%
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\N_0}
+           \ar[d]_-{\ensuremath{\Varid{l}\;\Varid{k}}}
+&
+    \ensuremath{\mathrm{1}\mathbin{+}\N_0}
+           \ar[d]^{\ensuremath{\Conid{F}\;\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}}}
+           \ar[l]_-{\ensuremath{\mathsf{in}}}
+\\
+     \ensuremath{\N_0}
+&
+     \ensuremath{\mathrm{1}\mathbin{+}\N_0\mathbin{*}\N_0}
+           \ar[l]^-{\ensuremath{\alt{\succ \comp \Varid{k}}{\succ \comp \p2}}}
+}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+	\start
+		        \ensuremath{\begin{lcbr}\Varid{f}\;\Varid{k}\comp \mathbf{in}\mathrel{=}\alt{\underline{\mathrm{1}}}{\Varid{mul}}\comp \Conid{F}\;\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}\\\Varid{l}\;\Varid{k}\comp \mathbf{in}\mathrel{=}\alt{\succ \comp \Varid{k}}{\succ \comp \p2}\comp \Conid{F}\;\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}\end{lcbr}}
+	%
+	\just\equiv{ Fokkinga (50) }
+		\ensuremath{\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}\mathrel{=}\cata{\conj{\alt{\underline{\mathrm{1}}}{\Varid{mul}}}{\alt{\succ \comp \Varid{k}}{\succ \comp \p2}}}}
+	%
+	\just\equiv{ Lei da Troca (28) }
+		\ensuremath{\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}\mathrel{=}\cata{\alt{\conj{\underline{\mathrm{1}}}{\succ \comp \Varid{k}}}{\conj{\Varid{mul}}{\succ \comp \p2}}}}
+	%
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+	\start
+		\ensuremath{\conj{\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}}{\conj{\Varid{g}}{\Varid{s}}}}
+	%
+	\just\equiv{ Banana-split (51) }
+		\ensuremath{\cata{(\alt{\conj{\underline{\mathrm{1}}}{\succ \comp \Varid{k}}}{\conj{\Varid{mul}}{\succ \comp \p2}}\times\alt{\conj{\underline{\mathrm{1}}}{\underline{\mathrm{1}}}}{\conj{\Varid{mul}}{\succ \comp \p2}})\comp \conj{\Conid{F}\;\p1}{\Conid{F}\;\p2}}}
+	%
+	\just\equiv{ Absorção-$\times$ (11) }
+		\ensuremath{\cata{\conj{\alt{\conj{\underline{\mathrm{1}}}{\succ \comp \Varid{k}}}{\conj{\Varid{mul}}{\succ \comp \p2}}\comp \Conid{F}\;\p1}{\alt{\conj{\underline{\mathrm{1}}}{\underline{\mathrm{1}}}}{\conj{\Varid{mul}}{\succ \comp \p2}}\comp \Conid{F}\;\p2}}}
+	%
+	\just\equiv{ Functor }
+		\ensuremath{\cata{\conj{\alt{\conj{\underline{\mathrm{1}}}{\succ \comp \Varid{k}}}{\conj{\Varid{mul}}{\succ \comp \p2}}\comp (\Varid{id}\mathbin{+}\p1)}{\alt{\conj{\underline{\mathrm{1}}}{\underline{\mathrm{1}}}}{\conj{\Varid{mul}}{\succ \comp \p2}}\comp (\Varid{id}\mathbin{+}\p2)}}}
+	%
+	\just\equiv{ Absorção-+ (22) }
+		\ensuremath{\cata{\conj{\alt{\conj{\underline{\mathrm{1}}}{\succ \comp \Varid{k}}}{\conj{\Varid{mul}}{\succ \comp \p2}\comp \p1}}{\alt{\conj{\underline{\mathrm{1}}}{\underline{\mathrm{1}}}}{\conj{\Varid{mul}}{\succ \comp \p2}\comp \p2}}}}
+	%
+	\just\equiv{ Fusão-$\times$ (9) }
+		\ensuremath{\cata{\conj{\alt{\conj{\underline{\mathrm{1}}}{\succ \comp \Varid{k}}}{\conj{\Varid{mul}\comp \p1}{\succ \comp \p2\comp \p1}}}{\alt{\conj{\underline{\mathrm{1}}}{\underline{\mathrm{1}}}}{\conj{\Varid{mul}\comp \p2}{\succ \comp \p2\comp \p2}}}}}
+	%
+	\just\equiv{ Lei da troca (28) }
+		\ensuremath{\cata{\alt{\conj{\conj{\underline{\mathrm{1}}}{\succ \comp \Varid{k}}}{\conj{\underline{\mathrm{1}}}{\underline{\mathrm{1}}}}}{\conj{\conj{\Varid{mul}\comp \p1}{\succ \comp \p2\comp \p1}}{\conj{\Varid{mul}\comp \p2}{\succ \comp \p2\comp \p2}}}}}
+	%
+\end{eqnarray*}
+
+\begin{eqnarray*}
+	\start
+		\ensuremath{\mathsf{for}\ \Varid{g}\ \Varid{i}\mathrel{=}\cata{\alt{\underline{\Varid{i}}}{\Varid{g}}}}
+	%
+	\just\equiv
+		\ensuremath{(\Varid{a},\anonymous ,\Varid{b},\anonymous )\mathrel{=}\cata{\alt{\underline{(\Varid{base}\;\Varid{k})}}{\Varid{loop}}}}
+	%
+	\just\equiv
+			        \ensuremath{\begin{lcbr}\Varid{base}\;\Varid{k}\mathrel{=}\conj{\conj{\underline{\mathrm{1}}}{\succ \comp \Varid{k}}}{\conj{\underline{\mathrm{1}}}{\underline{\mathrm{1}}}}\\\Varid{loop}\mathrel{=}\conj{\conj{\Varid{mul}\comp \p1}{\succ \comp \p2\comp \p1}}{\conj{\Varid{mul}\comp \p2}{\succ \comp \p2\comp \p2}}\end{lcbr}}
+	%
+\end{eqnarray*}
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{base}\;\Varid{k}\mathrel{=}(\mathrm{1},\succ \;\Varid{k},\mathrm{1},\mathrm{1}){}\<[E]%
+\\
+\>[B]{}\Varid{loop}\mathrel{=}\Varid{pack}\comp \conj{\conj{\Varid{mul}\comp \p1}{\succ \comp \p2\comp \p1}}{\conj{\Varid{mul}\comp \p2}{\succ \comp \p2\comp \p2}}\comp \Varid{unpack}{}\<[E]%
 \\
 \>[B]{}\hsindent{5}{}\<[5]%
 \>[5]{}\mathbf{where}{}\<[E]%
 \\
 \>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\Varid{unBag}\;(\mathit B\;\Varid{a})\mathrel{=}\Varid{a}{}\<[E]%
+\>[9]{}\Varid{unpack}\;(\Varid{a},\Varid{b},\Varid{c},\Varid{d})\mathrel{=}((\Varid{a},\Varid{b}),(\Varid{c},\Varid{d})){}\<[E]%
 \\
 \>[5]{}\hsindent{4}{}\<[9]%
-\>[9]{}\Varid{aux}\;\Varid{n}\mathrel{=}\Varid{cataList}\mathbin{\$}\alt{\Varid{nil}}{\Varid{cons}\comp ((\Varid{id}\times(\uncurry{(\mathbin{/})}\comp \conj{\Varid{fromIntegral}}{\underline{\Varid{n}}}))\times\Varid{id})}{}\<[E]%
+\>[9]{}\Varid{pack}\;((\Varid{a},\Varid{b}),(\Varid{c},\Varid{d}))\mathrel{=}(\Varid{a},\Varid{b},\Varid{c},\Varid{d}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\subsection*{Problema 4}
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{13}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{18}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{25}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{30}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{inFTree}\mathrel{=}\alt{\Conid{Unit}}{\Varid{uncurry2}\;\Conid{Comp}}{}\<[E]%
+\\
+\>[B]{}\hsindent{13}{}\<[13]%
+\>[13]{}\mathbf{where}\;\Varid{uncurry2}\;\Varid{f}\mathrel{=}\lambda (\Varid{x},(\Varid{y},\Varid{z}))\to \Varid{f}\;\Varid{x}\;\Varid{y}\;\Varid{z}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{outFTree}\;(\Conid{Unit}\;\Varid{c}){}\<[25]%
+\>[25]{}\mathrel{=}i_1\;\Varid{c}{}\<[E]%
+\\
+\>[B]{}\Varid{outFTree}\;(\Conid{Comp}\;\Varid{a}\;\Varid{t1}\;\Varid{t2})\mathrel{=}i_2\;(\Varid{a},(\Varid{t1},\Varid{t2})){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{baseFTree}\;\Varid{f}\;\Varid{g}\;\Varid{h}{}\<[18]%
+\>[18]{}\mathrel{=}\Varid{g}+(\Varid{f}{}\<[30]%
+\>[30]{}\times(\Varid{h}\times\Varid{h})){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{recFTree}\;\Varid{f}\mathrel{=}\Varid{baseFTree}\;\Varid{id}\;\Varid{id}\;\Varid{f}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{cataFTree}\;\Varid{a}\mathrel{=}\Varid{a}\comp (\Varid{recFTree}\;(\Varid{cataFTree}\;\Varid{a}))\comp \Varid{outFTree}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{anaFTree}\;\Varid{f}\mathrel{=}\Varid{inFTree}\comp (\Varid{recFTree}\;(\Varid{anaFTree}\;\Varid{f}))\comp \Varid{f}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{hyloFTree}\;\Varid{a}\;\Varid{c}\mathrel{=}\Varid{cataFTree}\;\Varid{a}\comp \Varid{anaFTree}\;\Varid{c}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{instance}\;\Conid{Bifunctor}\;\Conid{FTree}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{bimap}\;\Varid{f}\;\Varid{g}\mathrel{=}\Varid{cataFTree}\;(\Varid{inFTree}\comp \Varid{baseFTree}\;\Varid{f}\;\Varid{g}\;\Varid{id}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+(Doc)
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{6}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{13}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{17}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{21}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{22}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{25}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{28}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{33}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{49}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{68}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{generatePTree}\mathrel{=}\Varid{anaFTree}\;\Varid{f}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{f}\;\Varid{n}\mathrel{=}\Varid{p2p}\;(i_2\;(\Varid{r},((\Varid{pred}\;\Varid{n}),(\Varid{pred}\;\Varid{n}))),i_1\;\mathrm{1})\;(\Varid{n}\equiv \mathrm{0}){}\<[E]%
+\\
+\>[5]{}\hsindent{1}{}\<[6]%
+\>[6]{}\mathbf{where}\;{}\<[13]%
+\>[13]{}\Varid{r}\mathrel{=}(\Varid{sqrt}\;\mathrm{2})\mathbin{\uparrow}(\Varid{fromIntegral}\;\Varid{n}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{drawPTree}\mathrel{=}\Varid{cycle}\comp \Varid{reverse}\comp \Varid{aux}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\mathbf{where}{}\<[E]%
+\\
+\>[5]{}\hsindent{4}{}\<[9]%
+\>[9]{}\Varid{aux}\;(\Conid{Unit}\;\Varid{a})\mathrel{=}\Varid{singl}\mathbin{\$}\Varid{drawStep}\;(\Conid{Unit}\;\Varid{a}){}\<[E]%
+\\
+\>[5]{}\hsindent{4}{}\<[9]%
+\>[9]{}\Varid{aux}\;\Varid{a}\mathrel{=}(\Varid{drawStep}\;\Varid{a})\mathbin{:}\Varid{aux}\;(\Varid{cutLeaves}\;\Varid{a}){}\<[E]%
+\\
+\>[9]{}\hsindent{4}{}\<[13]%
+\>[13]{}\mathbf{where}{}\<[E]%
+\\
+\>[13]{}\hsindent{4}{}\<[17]%
+\>[17]{}\Varid{cutLeaves}\mathrel{=}\Varid{cataFTree}\;\alt{\Conid{Unit}}{\Varid{g}}{}\<[E]%
+\\
+\>[17]{}\hsindent{5}{}\<[22]%
+\>[22]{}\mathbf{where}\;\Varid{g}\;(\Varid{s},((\Conid{Unit}\;\anonymous ),(\Conid{Unit}\;\anonymous )))\mathrel{=}\Conid{Unit}\;\Varid{s}{}\<[E]%
+\\
+\>[22]{}\hsindent{6}{}\<[28]%
+\>[28]{}\Varid{g}\;(\Varid{s},(\Varid{l},\Varid{r}))\mathrel{=}\Conid{Comp}\;\Varid{s}\;\Varid{l}\;\Varid{r}{}\<[E]%
+\\
+\>[5]{}\hsindent{4}{}\<[9]%
+\>[9]{}\Varid{drawStep}\mathrel{=}\Varid{pictures}\comp \Varid{cataFTree}\;\alt{\Varid{f}}{\Varid{g}}{}\<[E]%
+\\
+\>[9]{}\hsindent{4}{}\<[13]%
+\>[13]{}\mathbf{where}{}\<[E]%
+\\
+\>[13]{}\hsindent{4}{}\<[17]%
+\>[17]{}\Varid{f}\mathrel{=}\Varid{singl}\comp \Varid{square}{}\<[E]%
+\\
+\>[13]{}\hsindent{4}{}\<[17]%
+\>[17]{}\Varid{g}\;(\Varid{s},(\Varid{l},\Varid{r}))\mathrel{=}(\Varid{f}\;\Varid{s})\plus \mathsf{conc}\;(\Varid{left}\;\Varid{l},\Varid{right}\;\Varid{r}){}\<[E]%
+\\
+\>[17]{}\hsindent{4}{}\<[21]%
+\>[21]{}\mathbf{where}{}\<[E]%
+\\
+\>[21]{}\hsindent{4}{}\<[25]%
+\>[25]{}\Varid{left}\mathrel{=}{}\<[33]%
+\>[33]{}\map \;(\Varid{translate}\;(\mathbin{-}\Varid{s}\mathbin{/}\mathrm{2})\;\Varid{s}\comp \Varid{rotate}\;(\mathbin{-}\mathrm{45})){}\<[E]%
+\\
+\>[21]{}\hsindent{4}{}\<[25]%
+\>[25]{}\Varid{right}\mathrel{=}\map \;(\Varid{translate}\;{}\<[49]%
+\>[49]{}(\Varid{s}\mathbin{/}\mathrm{2})\;\Varid{s}\comp \Varid{rotate}\;{}\<[68]%
+\>[68]{}\mathrm{45}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{scalePTree}\;\Varid{n}\;(\Conid{Unit}\;\Varid{s})\mathrel{=}\Conid{Unit}\;(\Varid{n}\mathbin{*}\Varid{s}){}\<[E]%
+\\
+\>[B]{}\Varid{scalePTree}\;\Varid{n}\;(\Conid{Comp}\;\Varid{s}\;\Varid{l}\;\Varid{r})\mathrel{=}\Conid{Comp}\;(\Varid{n}\mathbin{*}\Varid{s})\;(\Varid{scalePTree}\;\Varid{n}\;\Varid{l})\;(\Varid{scalePTree}\;\Varid{n}\;\Varid{r}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{draw}\;\Varid{n}\mathrel{=}\Varid{display}\;\Varid{window}\;\Varid{white}\;(\Varid{n}\mathbin{!!}\mathrm{0}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{main}\mathbin{::}\fun{IO}\;(){}\<[E]%
+\\
+\>[B]{}\Varid{main}\mathrel{=}\Varid{animatePTree}\;\mathrm{6}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\subsection*{Problema 5}
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{8}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{13}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{17}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{singletonbag}\mathrel{=}\mathit B\comp \Varid{singl}\comp \conj{\Varid{id}}{\underline{\mathrm{1}}}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mu \mathrel{=}{}\<[8]%
+\>[8]{}\mathit B\comp \Varid{aux}\comp \Varid{unB}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\mathbf{where}{}\<[E]%
+\\
+\>[5]{}\hsindent{4}{}\<[9]%
+\>[9]{}\Varid{aux}\mathrel{=}\Varid{cataList}\mathbin{\$}\alt{\Varid{nil}}{\mathsf{conc}\comp ((\uncurry{\Varid{f}}\comp \Varid{swap}\comp (\Varid{unB}\times\Varid{id}))\times\Varid{id})}{}\<[E]%
+\\
+\>[9]{}\hsindent{4}{}\<[13]%
+\>[13]{}\mathbf{where}{}\<[E]%
+\\
+\>[13]{}\hsindent{4}{}\<[17]%
+\>[17]{}\Varid{f}\;\Varid{n}\mathrel{=}\map \;(\Varid{id}\times(\mathbin{*}\Varid{n})){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{dist}\mathrel{=}\Varid{uniform}\comp \Varid{concat}\comp \map \;\uncurry{(\Varid{flip}\;\Varid{replicate})}\comp \Varid{unB}{}\<[E]%
 \ColumnHook
 \end{hscode}\resethooks
 

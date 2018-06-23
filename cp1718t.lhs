@@ -1090,11 +1090,11 @@ invertQTree = fmap $ \(PixelRGBA8 r g b a) -> (PixelRGBA8 (255 - r) (255 - g) (2
 
 
 
-Na função \emph{compressQTree}, tal como é pedido no enunciado, usou-se um catamorfismo. Inicialmente, calcula-se a nova profundidade, diferença entre a profundidade da \emph{QTree} e o \emph{n} dado. Usando um for, percorre a \emph{QTree} até chegar à nova profundidade. Depois executa a função \emph{compress}. A função \emph{compress} percorre a \emph{QTree} até ser uma \emph{Cell}. Caso não o seja, procura no primeiro \emph{Block} da \emph{QTree}. Por fim, devolve a \emph{Cell} com o dobro do seu tamanho.
+Na função \emph{compressQTree}, tal como é pedido no enunciado, usou-se um catamorfismo. Inicialmente, calcula-se a nova profundidade, diferença entre a profundidade da \emph{QTree} e o \emph{n} dado. Usando um for, percorre a \emph{QTree} até chegar à nova profundidade. Depois executa a função \emph{compress}. A função \emph{compress} percorre a \emph{QTree} até ser uma \emph{Cell}. Caso não o seja, procura no primeiro \emph{Block} da \emph{QTree}. Por fim, devolve a \emph{Cell} com o seu tamanho e das células à sua volta.
 
 \begin{code}
 
-compressQTree n = (uncurry (for recTree compress)) . split (subtract n . depthQTree) id
+compressQTree n = (uncurry (for recTree compress)) . split ((uncurry max).split (subtract n . depthQTree) (const 0)) id
     where
         recTree f = inQTree.(recQTree f).outQTree
         compress = cataQTree (either f g)
@@ -1356,8 +1356,8 @@ A função \emph{generatePTree} é um anamorfismo que cria uma árvore de folhas
 \begin{code}
 
 generatePTree = anaFTree f where
-    f n = p2p (i2 (r, ((pred n), (pred n))), i1 1) (n == 0)
-     where  r = (sqrt 2) ^ (fromIntegral n)
+    f n = p2p (i2 (r, ((pred n), (pred n))), i1 20) (n == 0)
+     where  r = (sqrt 2) ^ (fromIntegral n) * 20
 
 \end{code}
 
@@ -1367,14 +1367,14 @@ A função auxiliar \emph{drawPTree} . No final as Pictures são juntas numa ún
 
 \begin{code}
 
-drawPTree = cycle . reverse . aux
+drawPTree = cycle.reverse.aux
     where
         aux (Unit a) = singl $ drawStep (Unit a)
         aux a = (drawStep a) : aux (cutLeaves a)
             where
-                cutLeaves = cataFTree (either Unit g)
-                     where g (s, ((Unit _), (Unit _))) = Unit s
-                           g (s, (l, r)) = Comp s l r
+                cutLeaves (Unit s) = Unit s
+                cutLeaves (Comp s (Unit _) (Unit _)) = Unit s
+                cutLeaves (Comp s l r) = Comp s (cutLeaves l) (cutLeaves r)
         drawStep = pictures . cataFTree (either f g)
             where
                 f = singl . square
